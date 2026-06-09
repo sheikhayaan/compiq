@@ -49,6 +49,21 @@ export async function GET(_request: Request, context: RouteContext<'/api/compani
     }
 
     type SalaryItem = (typeof company.salaries)[number]
+    type GroupedSalary = {
+      level: string
+      normalizedLevel: string
+      count: number
+      medianBase: number
+      medianBonus: number
+      medianEquity: number
+      medianTC: number
+    }
+    type LevelItem = {
+      level: string
+      normalizedLevel: string
+      medianTC: number
+    }
+
     const grouped = new Map<string, SalaryItem[]>()
     company.salaries.forEach((salary: SalaryItem) => {
       const existing = grouped.get(salary.level) ?? []
@@ -56,7 +71,7 @@ export async function GET(_request: Request, context: RouteContext<'/api/compani
       grouped.set(salary.level, existing)
     })
 
-    const groupedSalaries = Array.from(grouped.entries()).map(([level, salaries]: [string, SalaryItem[]]) => ({
+    const groupedSalaries = Array.from(grouped.entries()).map(([level, salaries]: [string, SalaryItem[]]): GroupedSalary => ({
       level,
       normalizedLevel: salaries[0]?.normalizedLevel ?? 'Mid',
       count: salaries.length,
@@ -67,7 +82,7 @@ export async function GET(_request: Request, context: RouteContext<'/api/compani
     }))
 
     const levels = groupedSalaries
-      .map((level) => ({
+      .map((level: LevelItem) => ({
         code: level.level,
         name: `${level.normalizedLevel} ${company.name}`,
         tier: level.normalizedLevel,
@@ -78,7 +93,7 @@ export async function GET(_request: Request, context: RouteContext<'/api/compani
           level.normalizedLevel === 'Staff' ? 9 : 12,
         medianTC: level.medianTC,
       }))
-      .sort((a, b) => a.typicalYoe - b.typicalYoe)
+      .sort((a: { typicalYoe: number }, b: { typicalYoe: number }) => a.typicalYoe - b.typicalYoe)
 
     const data = {
       id: company.id,
