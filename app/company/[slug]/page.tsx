@@ -36,24 +36,26 @@ export default function CompanyProfilePage() {
 
   // Calculate dynamic average compensation components
   const compBreakdown = useMemo(() => {
-    if (companySalaries.length === 0) {
+    const dominantCurrency = (company as any)?.dominantCurrency || companySalaries[0]?.currency || 'USD';
+    const salariesForCurrency = companySalaries.filter((s: any) => s.currency === dominantCurrency);
+    if (salariesForCurrency.length === 0) {
       return { base: 0, bonus: 0, equity: 0 };
     }
     let totalBase = 0;
     let totalBonus = 0;
     let totalEquity = 0;
-    companySalaries.forEach((s: any) => {
+    salariesForCurrency.forEach((s: any) => {
       totalBase += s.base;
       totalBonus += s.bonus;
       totalEquity += s.equity;
     });
-    const count = companySalaries.length;
+    const count = salariesForCurrency.length;
     return {
       base: Math.round(totalBase / count),
       bonus: Math.round(totalBonus / count),
       equity: Math.round(totalEquity / count),
     };
-  }, [companySalaries]);
+  }, [company, companySalaries]);
 
   if (loading) {
     return (
@@ -75,12 +77,32 @@ export default function CompanyProfilePage() {
     );
   }
 
-  const formatCurrency = (val: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      maximumFractionDigits: 0,
-    }).format(val);
+  const dominantCurrency = (company as any).dominantCurrency || companySalaries[0]?.currency || 'USD';
+
+  function formatCurrency(amount: number, currency: string): string {
+    if (!amount || amount === 0) return 'N/A'
+    switch(currency) {
+      case 'INR':
+        return `₹${(amount/100000).toFixed(1)}L`
+      case 'GBP':
+        return `£${Math.round(amount/1000)}k`
+      case 'EUR':
+        return `€${Math.round(amount/1000)}k`
+      case 'CAD':
+        return `CA$${Math.round(amount/1000)}k`
+      case 'SGD':
+        return `S$${Math.round(amount/1000)}k`
+      case 'AUD':
+        return `A$${Math.round(amount/1000)}k`
+      case 'AED':
+        return `AED ${Math.round(amount/1000)}k`
+      case 'JPY':
+        return `¥${(amount/1000000).toFixed(1)}M`
+      case 'BRL':
+        return `R$${Math.round(amount/1000)}k`
+      default:
+        return `$${Math.round(amount/1000)}k`
+    }
   };
 
   return (
@@ -190,19 +212,19 @@ export default function CompanyProfilePage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <StatCard
               title="Median Total Comp"
-              value={formatCurrency(company.medianTC)}
+              value={formatCurrency(company.medianTC, dominantCurrency)}
               subtext="Average SWE earnings"
               accentColor="indigo"
             />
             <StatCard
               title="Median Base Salary"
-              value={formatCurrency(company.medianBase)}
+              value={formatCurrency(company.medianBase, dominantCurrency)}
               subtext="Guaranteed base pay"
               accentColor="cyan"
             />
             <StatCard
               title="Top Level TC"
-              value={formatCurrency(company.topLevelTC)}
+              value={formatCurrency(company.topLevelTC, dominantCurrency)}
               subtext="Principal / Partner engineers"
               accentColor="green"
             />
@@ -221,6 +243,7 @@ export default function CompanyProfilePage() {
                 base={compBreakdown.base}
                 bonus={compBreakdown.bonus}
                 equity={compBreakdown.equity}
+                currency={dominantCurrency}
                 showDetails={true}
               />
             </div>
@@ -250,7 +273,7 @@ export default function CompanyProfilePage() {
                     <div className="flex items-center gap-3">
                       <LevelBadge tier={lvl.tier} />
                       <span className="font-mono font-bold text-sm text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">
-                        {formatCurrency(lvl.medianTC)}
+                        {formatCurrency(lvl.medianTC, dominantCurrency)}
                       </span>
                     </div>
                   </div>
@@ -302,7 +325,7 @@ export default function CompanyProfilePage() {
                     </td>
                     <td className="py-4 px-4 text-center text-text-primary">{lvl.typicalYoe}+ yrs</td>
                     <td className="py-4 px-6 text-right font-black text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">
-                      {formatCurrency(lvl.medianTC)}
+                      {formatCurrency(lvl.medianTC, dominantCurrency)}
                     </td>
                   </tr>
                 ))}

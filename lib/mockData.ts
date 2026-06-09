@@ -27,6 +27,7 @@ export interface Company {
   medianTC: number;
   medianBase: number;
   topLevelTC: number;
+  dominantCurrency?: string;
   levels: {
     code: string;
     name: string;

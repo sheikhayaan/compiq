@@ -48,8 +48,20 @@ export async function GET(_request: Request, context: RouteContext<'/api/compani
       return Response.json({ data: null, error: 'Company not found' }, { status: 404 })
     }
 
+    const currencyCounts = company.salaries.reduce(
+      (acc: any, s: any) => {
+        acc[s.currency] = (acc[s.currency] || 0) + 1
+        return acc
+      }, {}
+    )
+    const dominantCurrency = Object.entries(currencyCounts)
+      .sort((a: any, b: any) => b[1] - a[1])[0]?.[0] || 'USD'
+    const filteredSalaries = company.salaries.filter(
+      (s: any) => s.currency === dominantCurrency
+    )
+
     const grouped = new Map<string, any[]>()
-    company.salaries.forEach((salary: any) => {
+    filteredSalaries.forEach((salary: any) => {
       const existing = grouped.get(salary.level) ?? []
       existing.push(salary)
       grouped.set(salary.level, existing)
@@ -87,11 +99,12 @@ export async function GET(_request: Request, context: RouteContext<'/api/compani
       logo: company.logo,
       _count: { salaries: company._count.salaries },
       salariesReported: company._count.salaries,
-      medianTC: median(company.salaries.map((salary: any) => salary.totalComp)) ?? 0,
-      medianBase: median(company.salaries.map((salary: any) => salary.baseSalary)) ?? 0,
-      topLevelTC: Math.max(0, ...company.salaries.map((salary: any) => salary.totalComp)),
+      medianTC: median(filteredSalaries.map((salary: any) => salary.totalComp)) ?? 0,
+      medianBase: median(filteredSalaries.map((salary: any) => salary.baseSalary)) ?? 0,
+      topLevelTC: Math.max(0, ...filteredSalaries.map((salary: any) => salary.totalComp)),
+      dominantCurrency,
       levels,
-      salaries: company.salaries,
+      salaries: filteredSalaries,
       groupedSalaries,
     }
 

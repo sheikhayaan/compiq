@@ -64,12 +64,30 @@ export default function SalaryTable({ data }: SalaryTableProps) {
     return sortedData.slice(startIdx, startIdx + itemsPerPage);
   }, [sortedData, currentPage]);
 
-  const formatCurrency = (val: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      maximumFractionDigits: 0,
-    }).format(val);
+  const formatCurrency = (amount: number, currency: string = 'USD'): string => {
+    if (!amount || amount === 0) return 'N/A'
+    switch(currency) {
+      case 'INR':
+        return `₹${(amount/100000).toFixed(1)}L`
+      case 'GBP':
+        return `£${Math.round(amount/1000)}k`
+      case 'EUR':
+        return `€${Math.round(amount/1000)}k`
+      case 'CAD':
+        return `CA$${Math.round(amount/1000)}k`
+      case 'SGD':
+        return `S$${Math.round(amount/1000)}k`
+      case 'AUD':
+        return `A$${Math.round(amount/1000)}k`
+      case 'AED':
+        return `AED ${Math.round(amount/1000)}k`
+      case 'JPY':
+        return `¥${(amount/1000000).toFixed(1)}M`
+      case 'BRL':
+        return `R$${Math.round(amount/1000)}k`
+      default:
+        return `$${Math.round(amount/1000)}k`
+    }
   };
 
   const formatDate = (dateStr: string) => {
@@ -206,16 +224,16 @@ export default function SalaryTable({ data }: SalaryTableProps) {
                   <td className="py-4 px-4 text-center text-text-primary font-medium">{row.yoe}</td>
                   <td className="py-4 px-4 text-text-muted">{row.location}</td>
                   <td className="py-4 px-4 text-right text-text-muted font-mono">
-                    {formatCurrency(row.base)}
+                    {formatCurrency(row.base, row.currency)}
                   </td>
                   <td className="py-4 px-4 text-right text-text-muted font-mono">
-                    {row.bonus > 0 ? formatCurrency(row.bonus) : '—'}
+                    {row.bonus > 0 ? formatCurrency(row.bonus, row.currency) : '—'}
                   </td>
                   <td className="py-4 px-4 text-right text-text-muted font-mono">
-                    {row.equity > 0 ? formatCurrency(row.equity) : '—'}
+                    {row.equity > 0 ? formatCurrency(row.equity, row.currency) : '—'}
                   </td>
                   <td className="py-4 px-6 text-right font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary font-mono text-base">
-                    {formatCurrency(row.totalComp)}
+                    {formatCurrency(row.totalComp, row.currency)}
                   </td>
                   <td suppressHydrationWarning className="py-4 px-4 text-right text-text-muted text-xs">
                     {formatDate(row.date)}

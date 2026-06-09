@@ -4,6 +4,7 @@ interface TCBreakdownProps {
   base: number;
   bonus: number;
   equity: number;
+  currency?: string;
   className?: string;
   showDetails?: boolean;
 }
@@ -12,6 +13,7 @@ export default function TCBreakdown({
   base,
   bonus,
   equity,
+  currency = 'USD',
   className = '',
   showDetails = true,
 }: TCBreakdownProps) {
@@ -20,12 +22,30 @@ export default function TCBreakdown({
   const bonusPct = total > 0 ? (bonus / total) * 100 : 0;
   const equityPct = total > 0 ? (equity / total) * 100 : 0;
 
-  const formatCurrency = (val: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      maximumFractionDigits: 0,
-    }).format(val);
+  const formatCurrency = (amount: number): string => {
+    if (!amount || amount === 0) return 'N/A'
+    switch(currency) {
+      case 'INR':
+        return `₹${(amount/100000).toFixed(1)}L`
+      case 'GBP':
+        return `£${Math.round(amount/1000)}k`
+      case 'EUR':
+        return `€${Math.round(amount/1000)}k`
+      case 'CAD':
+        return `CA$${Math.round(amount/1000)}k`
+      case 'SGD':
+        return `S$${Math.round(amount/1000)}k`
+      case 'AUD':
+        return `A$${Math.round(amount/1000)}k`
+      case 'AED':
+        return `AED ${Math.round(amount/1000)}k`
+      case 'JPY':
+        return `¥${(amount/1000000).toFixed(1)}M`
+      case 'BRL':
+        return `R$${Math.round(amount/1000)}k`
+      default:
+        return `$${Math.round(amount/1000)}k`
+    }
   };
 
   return (

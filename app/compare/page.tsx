@@ -25,6 +25,8 @@ function CompareContent() {
   const initialCompany = searchParams.get('company') || searchParams.get('c1') || 'google';
   const [companies, setCompanies] = useState<Company[]>([]);
   const [comparisonData, setComparisonData] = useState<ComparisonEntry[]>([]);
+  const [displayCurrency, setDisplayCurrency] = useState<'USD' | 'INR'>('USD');
+  const [compareLoading, setCompareLoading] = useState(false);
 
   // State for 3 slots
   const [slots, setSlots] = useState<CompareSlot[]>([
@@ -52,18 +54,13 @@ function CompareContent() {
     };
   }, []);
 
-  useEffect(() => {
-    let ignore = false;
-    async function loadComparison() {
-      const entries = slots.map((slot: any) => `${slot.companySlug}:${slot.role}:${slot.level}`);
-      const result = await compareSalaries(entries);
-      if (!ignore) setComparisonData(result ?? []);
-    }
-    loadComparison();
-    return () => {
-      ignore = true;
-    };
-  }, [slots]);
+  const handleCompare = async () => {
+    setCompareLoading(true);
+    const entries = slots.map((slot: any) => `${slot.companySlug}:${slot.role}:${slot.level}`);
+    const result = await compareSalaries(entries);
+    setComparisonData(result ?? []);
+    setCompareLoading(false);
+  };
 
   const handleUpdateSlot = (index: number, key: keyof CompareSlot, value: string) => {
     setSlots((prev) => {
@@ -79,16 +76,37 @@ function CompareContent() {
       }
       return updated;
     });
+    setComparisonData([]);
   };
 
   const handleAddSlot = () => {
     if (slots.length < 3) {
       setSlots((prev) => [...prev, { companySlug: 'microsoft', role: 'Software Engineer', level: '62' }]);
+      setComparisonData([]);
     }
   };
 
   const handleRemoveSlot = (index: number) => {
     setSlots((prev: any) => prev.filter((_: any, i: any) => i !== index));
+    setComparisonData([]);
+  };
+
+  const toUsdRates: Record<string, number> = {
+    USD: 1,
+    INR: 1 / 83,
+    GBP: 1.27,
+    EUR: 1.08,
+    CAD: 0.74,
+    SGD: 0.74,
+    AUD: 0.66,
+    AED: 0.27,
+    JPY: 0.0067,
+    BRL: 0.2,
+  };
+
+  const convertAmount = (amount: number, sourceCurrency: string) => {
+    const usd = amount * (toUsdRates[sourceCurrency] ?? 1);
+    return displayCurrency === 'INR' ? usd * 83 : usd;
   };
 
   // Resolve slot data (base, bonus, equity, TC, YOE, equivalent, location)
@@ -97,6 +115,7 @@ function CompareContent() {
       const company = companies.find((c: any) => c.slug === slot.companySlug);
       const levelInfo = company?.levels.find((l: any) => l.code === slot.level);
       const matchedSalary = comparisonData[index];
+      const sourceCurrency = matchedSalary?.currency || company?.dominantCurrency || 'USD';
 
       const tc = matchedSalary?.medianTC || levelInfo?.medianTC || 200000;
       const base = matchedSalary?.medianBase || Math.round(tc * 0.55);
@@ -123,12 +142,17 @@ function CompareContent() {
         bonus,
         equity,
         totalComp: tc,
+        displayBase: convertAmount(base, sourceCurrency),
+        displayBonus: convertAmount(bonus, sourceCurrency),
+        displayEquity: convertAmount(equity, sourceCurrency),
+        displayTotalComp: convertAmount(tc, sourceCurrency),
+        sourceCurrency,
         yoe,
         location,
         ratings,
       };
     });
-  }, [companies, comparisonData, slots]);
+  }, [companies, comparisonData, displayCurrency, slots]);
 
   // Color Coding Math: find min/max per row among active columns
   const rowComparison = useMemo(() => {
@@ -143,7 +167,7 @@ function CompareContent() {
       };
     }
 
-    const getExtremes = (key: 'base' | 'bonus' | 'equity' | 'totalComp' | 'yoe') => {
+    const getExtremes = (key: 'displayBase' | 'displayBonus' | 'displayEquity' | 'displayTotalComp' | 'yoe') => {
       const values = resolvedSlotsData.map((d: any) => d[key]);
       return {
         max: Math.max(...values),
@@ -152,10 +176,10 @@ function CompareContent() {
     };
 
     return {
-      base: getExtremes('base'),
-      bonus: getExtremes('bonus'),
-      equity: getExtremes('equity'),
-      totalComp: getExtremes('totalComp'),
+      base: getExtremes('displayBase'),
+      bonus: getExtremes('displayBonus'),
+      equity: getExtremes('displayEquity'),
+      totalComp: getExtremes('displayTotalComp'),
       yoe: getExtremes('yoe'),
     };
   }, [resolvedSlotsData]);
@@ -173,12 +197,10 @@ function CompareContent() {
     return '';
   };
 
-  const formatCurrency = (val: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      maximumFractionDigits: 0,
-    }).format(val);
+  const formatCurrency = (amount: number) => {
+    if (!amount || amount === 0) return 'N/A';
+    if (displayCurrency === 'INR') return `₹${(amount / 100000).toFixed(1)}L`;
+    return `$${Math.round(amount / 1000)}k`;
   };
 
   // Radar SVG Math Helper
@@ -320,6 +342,36 @@ function CompareContent() {
                   + Add to Compare
                 </button>
               )}
+
+              <div className="flex items-center gap-2 rounded-xl border border-border-dark bg-[#0e0e15]/70 p-1">
+                {(['USD', 'INR'] as const).map((currency) => (
+                  <button
+                    key={currency}
+                    type="button"
+                    onClick={() => setDisplayCurrency(currency)}
+                    className={`flex-1 rounded-lg px-3 py-2 text-xs font-bold transition-all ${
+                      displayCurrency === currency
+                        ? 'bg-primary text-white'
+                        : 'text-text-muted hover:text-text-primary'
+                    }`}
+                  >
+                    {currency}
+                  </button>
+                ))}
+              </div>
+
+              <button
+                type="button"
+                onClick={handleCompare}
+                disabled={compareLoading || slots.length === 0}
+                className="w-full rounded-xl px-4 py-3 text-sm font-bold text-white transition-all hover:scale-[1.02] disabled:cursor-not-allowed disabled:opacity-60"
+                style={{
+                  background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+                  boxShadow: '0 0 20px rgba(99,102,241,0.25)',
+                }}
+              >
+                {compareLoading ? 'Comparing...' : 'Compare Selected Slots'}
+              </button>
             </div>
           </div>
         </div>
@@ -345,6 +397,9 @@ function CompareContent() {
                         <span className="text-[10px] text-text-muted normal-case font-medium">
                           {d.role} • <span className="font-mono bg-border-dark px-1 py-0.5 rounded text-text-primary font-bold">{d.level}</span>
                         </span>
+                        <span className="text-[10px] text-text-muted normal-case">
+                          Source: {d.sourceCurrency}
+                        </span>
                       </div>
                     </th>
                   ))}
@@ -361,10 +416,10 @@ function CompareContent() {
                       key={index}
                       className={`py-5 px-4 text-center border-l border-border-dark/50 font-mono text-lg md:text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary ${getCellHighlight(
                         'totalComp',
-                        d.totalComp
+                        d.displayTotalComp
                       )}`}
                     >
-                      {formatCurrency(d.totalComp)}
+                      {formatCurrency(d.displayTotalComp)}
                     </td>
                   ))}
                 </tr>
@@ -377,10 +432,10 @@ function CompareContent() {
                       key={index}
                       className={`py-4 px-4 text-center border-l border-border-dark/50 font-mono font-medium text-text-primary ${getCellHighlight(
                         'base',
-                        d.base
+                        d.displayBase
                       )}`}
                     >
-                      {formatCurrency(d.base)}
+                      {formatCurrency(d.displayBase)}
                     </td>
                   ))}
                 </tr>
@@ -393,10 +448,10 @@ function CompareContent() {
                       key={index}
                       className={`py-4 px-4 text-center border-l border-border-dark/50 font-mono font-medium text-text-primary ${getCellHighlight(
                         'bonus',
-                        d.bonus
+                        d.displayBonus
                       )}`}
                     >
-                      {formatCurrency(d.bonus)}
+                      {formatCurrency(d.displayBonus)}
                     </td>
                   ))}
                 </tr>
@@ -409,10 +464,10 @@ function CompareContent() {
                       key={index}
                       className={`py-4 px-4 text-center border-l border-border-dark/50 font-mono font-medium text-text-primary ${getCellHighlight(
                         'equity',
-                        d.equity
+                        d.displayEquity
                       )}`}
                     >
-                      {formatCurrency(d.equity)}
+                      {formatCurrency(d.displayEquity)}
                     </td>
                   ))}
                 </tr>

@@ -43,6 +43,7 @@ export interface Company {
   medianTC: number
   medianBase: number
   topLevelTC: number
+  dominantCurrency?: string
   levels: CompanyLevel[]
 }
 
@@ -75,6 +76,7 @@ export interface ComparisonEntry {
   p75TC: number | null
   count: number
   medianYOE: number | null
+  currency?: string
 }
 
 export interface LevelMap {

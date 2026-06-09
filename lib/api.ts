@@ -39,6 +39,7 @@ type RawCompany = {
   medianTC: number
   medianBase: number
   topLevelTC?: number
+  dominantCurrency?: string
   levels?: Company['levels']
 }
 
@@ -75,6 +76,7 @@ function toCompany(company: RawCompany): Company {
     medianTC: company.medianTC,
     medianBase: company.medianBase,
     topLevelTC: company.topLevelTC ?? company.medianTC,
+    dominantCurrency: company.dominantCurrency,
     levels: company.levels ?? [],
   }
 }
