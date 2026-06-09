@@ -5,15 +5,14 @@ import { Company } from '@/lib/mockData';
 interface CompanyCardProps {
   company: Company;
   className?: string;
+  displayCurrency?: 'USD' | 'INR';
 }
 
-export default function CompanyCard({ company, className = '' }: CompanyCardProps) {
+export default function CompanyCard({ company, className = '', displayCurrency = 'USD' }: CompanyCardProps) {
   const formatCurrency = (val: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      maximumFractionDigits: 0,
-    }).format(val);
+    if (!val) return 'N/A'
+    if (displayCurrency === 'INR') return `₹${((val * 83) / 10000000).toFixed(2)}L`
+    return `$${Math.round(val / 1000)}k`
   };
 
   return (

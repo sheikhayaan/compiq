@@ -205,14 +205,30 @@ function SalariesContent() {
             </div>
           ) : (
             <div>
-              <div className="flex justify-between items-center mb-4">
+              <div className="flex flex-col gap-3 mb-4 sm:flex-row sm:items-center sm:justify-between">
                 <span className="text-xs text-text-muted font-medium">
                   Showing <span className="text-text-primary font-bold">{filteredCompanies.length}</span> tech profiles
                 </span>
+                <div className="flex w-full items-center gap-2 rounded-xl border border-border-dark bg-[#0e0e15]/70 p-1 sm:w-48">
+                  {(['USD', 'INR'] as const).map((currency) => (
+                    <button
+                      key={currency}
+                      type="button"
+                      onClick={() => setDisplayCurrency(currency)}
+                      className={`flex-1 rounded-lg px-3 py-2 text-xs font-bold transition-all ${
+                        displayCurrency === currency
+                          ? 'bg-primary text-white'
+                          : 'text-text-muted hover:text-text-primary'
+                      }`}
+                    >
+                      {currency}
+                    </button>
+                  ))}
+                </div>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                 {filteredCompanies.map((company: any) => (
-                  <CompanyCard key={company.id} company={company} />
+                  <CompanyCard key={company.id} company={company} displayCurrency={displayCurrency} />
                 ))}
                 {filteredCompanies.length === 0 && (
                   <p className="col-span-full py-12 text-center text-text-muted italic">

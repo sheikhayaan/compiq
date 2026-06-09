@@ -51,6 +51,14 @@ export default function FilterPanel({
   ];
 
   const levelsList = ['All', 'Junior', 'Mid', 'Senior', 'Staff', 'Principal'];
+  const requiredLocations = [
+    'India',
+    'Bangalore, India',
+    'Hyderabad, India',
+    'Mumbai, India',
+    'Pune, India',
+  ];
+  const displayLocations = Array.from(new Set([...requiredLocations, ...locationsList])).sort();
 
   const toggleCompany = (companyName: string) => {
     setSelectedCompanies((prev) =>
@@ -200,7 +208,7 @@ export default function FilterPanel({
           Location
         </label>
         <div className="flex flex-col gap-1.5 max-h-32 overflow-y-auto pr-1">
-          {locationsList.map((loc) => (
+          {displayLocations.map((loc) => (
             <label
               key={loc}
               className="flex items-center gap-2 text-xs text-text-primary hover:text-primary cursor-pointer transition-colors"
