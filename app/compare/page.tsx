@@ -27,6 +27,7 @@ function CompareContent() {
   const [companies, setCompanies] = useState<Company[]>([]);
   const [comparisonData, setComparisonData] = useState<ComparisonEntry[]>([]);
   const [displayCurrency, setDisplayCurrency] = useState<'USD' | 'INR'>('USD');
+  const [market, setMarket] = useState<'global' | 'india'>('global');
   const [compareLoading, setCompareLoading] = useState(false);
 
   // State for 3 slots
@@ -38,6 +39,39 @@ function CompareContent() {
 
   const rolesList = ['Software Engineer', 'Product Manager', 'Designer', 'Data Scientist'];
 
+  const visibleCompanies = useMemo(() => {
+    return companies.filter((company: any) =>
+      market === 'india'
+        ? company.dominantCurrency === 'INR'
+        : company.dominantCurrency !== 'INR'
+    );
+  }, [companies, market]);
+
+  const marketLabel = market === 'india' ? 'India local market' : 'Global / United States market';
+
+  const pickLevel = (company: any) => company?.levels?.[2]?.code || company?.levels?.[0]?.code || 'L5';
+
+  const applyMarket = (nextMarket: 'global' | 'india') => {
+    setMarket(nextMarket);
+    setComparisonData([]);
+    const candidates = companies.filter((company: any) =>
+      nextMarket === 'india'
+        ? company.dominantCurrency === 'INR'
+        : company.dominantCurrency !== 'INR'
+    );
+    if (candidates.length === 0) return;
+    setSlots((prev) =>
+      prev.map((slot: any, index: any) => {
+        const company = candidates[index % candidates.length];
+        return {
+          ...slot,
+          companySlug: company.slug,
+          level: pickLevel(company),
+        };
+      })
+    );
+  };
+
   const getLevelsForCompany = (companySlug: string) => {
     const company = companies.find((c: any) => c.slug === companySlug);
     return company ? company.levels.map((l: any) => l.code) : [];
@@ -47,7 +81,24 @@ function CompareContent() {
     let ignore = false;
     async function loadCompanies() {
       const result = await getCompanies();
-      if (!ignore && result) setCompanies(result as Company[]);
+      if (!ignore && result) {
+        setCompanies(result as Company[]);
+        const selected = (result as Company[]).find((company: any) => company.slug === initialCompany);
+        if (selected?.dominantCurrency === 'INR') {
+          const indiaCompanies = (result as Company[]).filter((company: any) => company.dominantCurrency === 'INR');
+          setMarket('india');
+          setSlots((prev) =>
+            prev.map((slot: any, index: any) => {
+              const company = indiaCompanies[index % indiaCompanies.length] || selected;
+              return {
+                ...slot,
+                companySlug: company.slug,
+                level: pickLevel(company),
+              };
+            })
+          );
+        }
+      }
     }
     loadCompanies();
     return () => {
@@ -82,7 +133,8 @@ function CompareContent() {
 
   const handleAddSlot = () => {
     if (slots.length < 3) {
-      setSlots((prev) => [...prev, { companySlug: 'microsoft', role: 'Software Engineer', level: '62' }]);
+      const company = visibleCompanies[slots.length % Math.max(visibleCompanies.length, 1)] || companies[0];
+      setSlots((prev) => [...prev, { companySlug: company?.slug || 'google', role: 'Software Engineer', level: pickLevel(company) }]);
       setComparisonData([]);
     }
   };
@@ -102,13 +154,17 @@ function CompareContent() {
       const levelInfo = company?.levels.find((l: any) => l.code === slot.level);
       const matchedSalary = comparisonData[index];
       const sourceCurrency = matchedSalary?.currency || company?.dominantCurrency || 'USD';
+      const sourceMarket = matchedSalary?.market || (sourceCurrency === 'INR' ? 'India local market' : 'Global / United States market');
 
       const tc = matchedSalary?.medianTC || levelInfo?.medianTC || 200000;
       const base = matchedSalary?.medianBase || Math.round(tc * 0.55);
       const equity = matchedSalary?.medianEquity || Math.round(tc * 0.35);
       const bonus = matchedSalary?.medianBonus || Math.round(tc * 0.10);
       const yoe = matchedSalary?.medianYOE || levelInfo?.typicalYoe || 5;
-      const location = matchedSalary?.count ? `${matchedSalary.count} records` : 'No data yet';
+      const locationLabel = matchedSalary?.location && matchedSalary?.country
+        ? `${matchedSalary.location}, ${matchedSalary.country}`
+        : sourceMarket;
+      const recordLabel = matchedSalary?.count ? `${matchedSalary.count} records` : 'No exact salary records yet';
 
       // Ratings mock for Radar Chart
       const ratings = {
@@ -133,8 +189,10 @@ function CompareContent() {
         displayEquity: convertAmount(equity, sourceCurrency),
         displayTotalComp: convertAmount(tc, sourceCurrency),
         sourceCurrency,
+        sourceMarket,
         yoe,
-        location,
+        location: locationLabel,
+        recordLabel,
         ratings,
       };
     });
@@ -241,6 +299,27 @@ function CompareContent() {
               <span className="text-xs text-text-muted font-normal">({slots.length} of 3)</span>
             </h3>
 
+            <div className="flex flex-col gap-2 rounded-xl border border-border-dark bg-[#0e0e15]/70 p-3">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-text-muted">Market</p>
+              <div className="flex items-center gap-2 rounded-lg bg-[#090910] p-1">
+                {(['global', 'india'] as const).map((item) => (
+                  <button
+                    key={item}
+                    type="button"
+                    onClick={() => applyMarket(item)}
+                    className={`flex-1 rounded-md px-3 py-2 text-xs font-bold transition-all ${
+                      market === item
+                        ? 'bg-secondary text-[#041014]'
+                        : 'text-text-muted hover:text-text-primary'
+                    }`}
+                  >
+                    {item === 'india' ? 'India' : 'Global / US'}
+                  </button>
+                ))}
+              </div>
+              <p className="text-[10px] text-text-muted">{marketLabel}</p>
+            </div>
+
             <div className="flex flex-col gap-5">
               {slots.map((slot: any, index: any) => (
                 <div
@@ -276,7 +355,7 @@ function CompareContent() {
                         onChange={(e) => handleUpdateSlot(index, 'companySlug', e.target.value)}
                         className="bg-card border border-border-dark rounded px-2.5 py-1.5 text-xs text-text-primary focus:outline-none"
                       >
-                        {companies.map((c: any) => (
+                        {visibleCompanies.map((c: any) => (
                           <option key={c.id} value={c.slug} className="bg-[#111118]">
                             {c.name}
                           </option>
@@ -406,7 +485,7 @@ function CompareContent() {
                           {d.role} / <span className="font-mono bg-border-dark px-1 py-0.5 rounded text-text-primary font-bold">{d.level}</span>
                         </span>
                         <span className="text-[10px] text-text-muted normal-case">
-                          Source: {d.sourceCurrency}
+                          {d.sourceMarket} / {d.sourceCurrency}
                         </span>
                       </div>
                     </th>
@@ -510,10 +589,11 @@ function CompareContent() {
 
                 {/* Location Row */}
                 <tr>
-                  <td className="py-4 px-6 text-text-muted font-semibold">Location</td>
+                  <td className="py-4 px-6 text-text-muted font-semibold">Market / Location</td>
                   {resolvedSlotsData.map((d: any, index: any) => (
                     <td key={index} className="py-4 px-4 text-center border-l border-border-dark/50 text-xs text-text-muted font-medium">
-                      {d.location}
+                      <span className="block text-text-primary">{d.location}</span>
+                      <span className="block text-[10px]">{d.recordLabel}</span>
                     </td>
                   ))}
                 </tr>

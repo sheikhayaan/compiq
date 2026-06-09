@@ -77,6 +77,9 @@ export interface ComparisonEntry {
   count: number
   medianYOE: number | null
   currency?: string
+  location?: string | null
+  country?: string | null
+  market?: string | null
 }
 
 export interface LevelMap {

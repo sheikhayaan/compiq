@@ -24,6 +24,8 @@ export async function GET(request: Request) {
           totalComp: true,
           yearsExp: true,
           currency: true,
+          location: true,
+          country: true,
           normalizedLevel: true,
           company: { select: { name: true, slug: true } },
         }
@@ -54,6 +56,16 @@ export async function GET(request: Request) {
         const currency = Object.entries(currencyCounts)
           .sort((a: any, b: any) => b[1] - a[1])[0]?.[0] || 'USD'
         const filteredSalaries = salaries.filter((salary: any) => salary.currency === currency)
+        const topValue = (items: string[]) => {
+          const counts = items.reduce((acc: any, item: string) => {
+            if (!item) return acc
+            acc[item] = (acc[item] || 0) + 1
+            return acc
+          }, {})
+          return Object.entries(counts).sort((a: any, b: any) => b[1] - a[1])[0]?.[0] || null
+        }
+        const location = topValue(filteredSalaries.map((salary: any) => salary.location))
+        const country = topValue(filteredSalaries.map((salary: any) => salary.country))
         const sample = salaries[0]
         return {
           companySlug,
@@ -70,6 +82,9 @@ export async function GET(request: Request) {
           count: filteredSalaries.length,
           medianYOE: median(filteredSalaries.flatMap((salary: any) => salary.yearsExp === null ? [] : [salary.yearsExp])),
           currency,
+          location,
+          country,
+          market: currency === 'INR' ? 'India local market' : 'Global / United States market',
         }
       })
     )
