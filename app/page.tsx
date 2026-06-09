@@ -84,7 +84,7 @@ export default function LandingPage() {
       const results: SearchResult[] = [];
 
       const companies = (compData.data || []).slice(0, 3);
-      companies.forEach((company: { name: string; slug: string; _count?: { salaries?: number } }) => {
+      companies.forEach((company: any) => {
         results.push({
           type: 'company',
           label: company.name,
@@ -96,7 +96,7 @@ export default function LandingPage() {
       });
 
       const salaryResults = (salData.data?.salaries || salData.data || []).slice(0, 4);
-      salaryResults.forEach((salary: { company?: { name?: string }; role: string; level: string; location: string; totalComp: number }) => {
+      salaryResults.forEach((salary: any) => {
         results.push({
           type: 'salary',
           label: `${salary.company?.name || ''} ${salary.role}`,
@@ -127,7 +127,7 @@ export default function LandingPage() {
 
   // Map chip values to mock filter logic
   const filteredSalaries = useMemo(() => {
-    return salaries.filter((s) => {
+    return salaries.filter((s: any) => {
       // Search text filter
       const textMatch =
         searchQuery === '' ||
@@ -212,7 +212,7 @@ export default function LandingPage() {
               animation: 'scan-line 8s linear infinite',
             }}
           />
-          {[...Array(12)].map((_, i) => (
+          {[...Array(12)].map((_: any, i: any) => (
             <div
               key={i}
               className="absolute w-1 h-1 rounded-full"
@@ -319,7 +319,7 @@ export default function LandingPage() {
                   label: 'Companies',
                 },
                 { label: 'Countries', value: '2+' },
-              ].map((stat, i) => (
+              ].map((stat: any, i: any) => (
                 <div key={i} className="flex items-center gap-3">
                   <div
                     className="text-2xl font-bold"
@@ -660,14 +660,14 @@ export default function LandingPage() {
                   backdropFilter: 'blur(20px)',
                 }}
               >
-                {searchResults.filter((result) => result.type === 'company').length > 0 && (
+                {searchResults.filter((result: any) => result.type === 'company').length > 0 && (
                   <div>
                     <div className="px-4 pt-3 pb-1 text-xs text-slate-500 font-semibold tracking-wider uppercase">
                       Companies
                     </div>
                     {searchResults
-                      .filter((result) => result.type === 'company')
-                      .map((result, i) => (
+                      .filter((result: any) => result.type === 'company')
+                      .map((result: any, i: any) => (
                         <button
                           key={`company-${i}`}
                           onClick={() => {
@@ -701,7 +701,7 @@ export default function LandingPage() {
                   </div>
                 )}
 
-                {searchResults.filter((result) => result.type === 'salary').length > 0 && (
+                {searchResults.filter((result: any) => result.type === 'salary').length > 0 && (
                   <div>
                     <div
                       className="px-4 pt-3 pb-1 text-xs text-slate-500 font-semibold tracking-wider uppercase"
@@ -710,8 +710,8 @@ export default function LandingPage() {
                       Salary Data
                     </div>
                     {searchResults
-                      .filter((result) => result.type === 'salary')
-                      .map((result, i) => (
+                      .filter((result: any) => result.type === 'salary')
+                      .map((result: any, i: any) => (
                         <button
                           key={`salary-${i}`}
                           onClick={() => {
@@ -781,7 +781,7 @@ export default function LandingPage() {
             <div className="flex items-center gap-2 flex-wrap">
               <span className="text-xs font-semibold text-text-muted w-16 shrink-0 uppercase tracking-wider">Role:</span>
               <div className="flex gap-1.5 flex-wrap">
-                {roles.map((role) => {
+                {roles.map((role: any) => {
                   const isActive = selectedRole === role;
                   return (
                     <button
@@ -804,7 +804,7 @@ export default function LandingPage() {
             <div className="flex items-center gap-2 flex-wrap">
               <span className="text-xs font-semibold text-text-muted w-16 shrink-0 uppercase tracking-wider">Level:</span>
               <div className="flex gap-1.5 flex-wrap">
-                {levels.map((lvl) => {
+                {levels.map((lvl: any) => {
                   const isActive = selectedLevel === lvl;
                   return (
                     <button
@@ -827,7 +827,7 @@ export default function LandingPage() {
             <div className="flex items-center gap-2 flex-wrap">
               <span className="text-xs font-semibold text-text-muted w-16 shrink-0 uppercase tracking-wider">Location:</span>
               <div className="flex gap-1.5 flex-wrap">
-                {locations.map((loc) => {
+                {locations.map((loc: any) => {
                   const isActive = selectedLoc === loc;
                   return (
                     <button
@@ -850,7 +850,7 @@ export default function LandingPage() {
             <div className="flex items-center gap-2 flex-wrap">
               <span className="text-xs font-semibold text-text-muted w-16 shrink-0 uppercase tracking-wider">Company:</span>
               <div className="flex gap-1.5 flex-wrap">
-                {companyTypes.map((type) => {
+                {companyTypes.map((type: any) => {
                   const isActive = selectedCompanyType === type;
                   return (
                     <button
@@ -892,7 +892,7 @@ export default function LandingPage() {
               </div>
 
               <div className="divide-y divide-border-dark/50">
-                {filteredSalaries.slice(0, 5).map((s) => (
+                {filteredSalaries.slice(0, 5).map((s: any) => (
                   <div key={s.id} className="py-3 flex items-center justify-between hover:bg-border-dark/20 px-2 rounded-lg transition-colors">
                     <div>
                       <div className="flex items-center gap-2">

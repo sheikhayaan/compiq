@@ -36,8 +36,8 @@ function CompareContent() {
   const rolesList = ['Software Engineer', 'Product Manager', 'Designer', 'Data Scientist'];
 
   const getLevelsForCompany = (companySlug: string) => {
-    const company = companies.find((c) => c.slug === companySlug);
-    return company ? company.levels.map((l) => l.code) : [];
+    const company = companies.find((c: any) => c.slug === companySlug);
+    return company ? company.levels.map((l: any) => l.code) : [];
   };
 
   useEffect(() => {
@@ -55,7 +55,7 @@ function CompareContent() {
   useEffect(() => {
     let ignore = false;
     async function loadComparison() {
-      const entries = slots.map((slot) => `${slot.companySlug}:${slot.role}:${slot.level}`);
+      const entries = slots.map((slot: any) => `${slot.companySlug}:${slot.role}:${slot.level}`);
       const result = await compareSalaries(entries);
       if (!ignore) setComparisonData(result ?? []);
     }
@@ -72,7 +72,7 @@ function CompareContent() {
       
       // Auto-update level code if company changes to ensure it matches
       if (key === 'companySlug') {
-        const company = companies.find((c) => c.slug === value);
+        const company = companies.find((c: any) => c.slug === value);
         if (company && company.levels.length > 0) {
           updated[index].level = company.levels[2]?.code || company.levels[0].code; // pick middle level
         }
@@ -88,14 +88,14 @@ function CompareContent() {
   };
 
   const handleRemoveSlot = (index: number) => {
-    setSlots((prev) => prev.filter((_, i) => i !== index));
+    setSlots((prev: any) => prev.filter((_: any, i: any) => i !== index));
   };
 
   // Resolve slot data (base, bonus, equity, TC, YOE, equivalent, location)
   const resolvedSlotsData = useMemo(() => {
-    return slots.map((slot, index) => {
-      const company = companies.find((c) => c.slug === slot.companySlug);
-      const levelInfo = company?.levels.find((l) => l.code === slot.level);
+    return slots.map((slot: any, index: any) => {
+      const company = companies.find((c: any) => c.slug === slot.companySlug);
+      const levelInfo = company?.levels.find((l: any) => l.code === slot.level);
       const matchedSalary = comparisonData[index];
 
       const tc = matchedSalary?.medianTC || levelInfo?.medianTC || 200000;
@@ -144,7 +144,7 @@ function CompareContent() {
     }
 
     const getExtremes = (key: 'base' | 'bonus' | 'equity' | 'totalComp' | 'yoe') => {
-      const values = resolvedSlotsData.map((d) => d[key]);
+      const values = resolvedSlotsData.map((d: any) => d[key]);
       return {
         max: Math.max(...values),
         min: Math.min(...values),
@@ -192,7 +192,7 @@ function CompareContent() {
     // 0 deg is top, angles go clockwise: 0, 72, 144, 216, 288
     const angles = [0, 72, 144, 216, 288];
 
-    return resolvedSlotsData.map((slot) => {
+    return resolvedSlotsData.map((slot: any) => {
       const scores = [
         slot.ratings.baseScore,
         slot.ratings.bonusScore,
@@ -202,7 +202,7 @@ function CompareContent() {
       ];
 
       return scores
-        .map((score, idx) => {
+        .map((score: any, idx: any) => {
           const angleRad = (angles[idx] * Math.PI) / 180;
           const dist = (score / 100) * r;
           const x = cx + dist * Math.sin(angleRad);
@@ -235,7 +235,7 @@ function CompareContent() {
             </h3>
 
             <div className="flex flex-col gap-5">
-              {slots.map((slot, index) => (
+              {slots.map((slot: any, index: any) => (
                 <div
                   key={index}
                   className="bg-[#0A0A0F] border border-border-dark p-4 rounded-xl relative flex flex-col gap-3"
@@ -252,10 +252,10 @@ function CompareContent() {
                   
                   <div className="flex items-center gap-2 mb-1">
                     <span
-                      style={{ backgroundColor: companies.find((c) => c.slug === slot.companySlug)?.logoBg }}
+                      style={{ backgroundColor: companies.find((c: any) => c.slug === slot.companySlug)?.logoBg }}
                       className="w-5 h-5 rounded flex items-center justify-center font-bold text-white text-[10px]"
                     >
-                      {companies.find((c) => c.slug === slot.companySlug)?.name[0] || 'C'}
+                      {companies.find((c: any) => c.slug === slot.companySlug)?.name[0] || 'C'}
                     </span>
                     <span className="text-xs font-bold text-text-primary">Slot {index + 1}</span>
                   </div>
@@ -269,7 +269,7 @@ function CompareContent() {
                         onChange={(e) => handleUpdateSlot(index, 'companySlug', e.target.value)}
                         className="bg-card border border-border-dark rounded px-2.5 py-1.5 text-xs text-text-primary focus:outline-none"
                       >
-                        {companies.map((c) => (
+                        {companies.map((c: any) => (
                           <option key={c.id} value={c.slug} className="bg-[#111118]">
                             {c.name}
                           </option>
@@ -285,7 +285,7 @@ function CompareContent() {
                         onChange={(e) => handleUpdateSlot(index, 'role', e.target.value)}
                         className="bg-card border border-border-dark rounded px-2.5 py-1.5 text-xs text-text-primary focus:outline-none"
                       >
-                        {rolesList.map((r) => (
+                        {rolesList.map((r: any) => (
                           <option key={r} value={r} className="bg-[#111118]">
                             {r === 'Software Engineer' ? 'SWE' : r === 'Product Manager' ? 'PM' : r === 'Designer' ? 'Design' : 'Data'}
                           </option>
@@ -301,7 +301,7 @@ function CompareContent() {
                         onChange={(e) => handleUpdateSlot(index, 'level', e.target.value)}
                         className="bg-card border border-border-dark rounded px-2.5 py-1.5 text-xs text-text-primary focus:outline-none font-mono"
                       >
-                        {getLevelsForCompany(slot.companySlug).map((lvl) => (
+                        {getLevelsForCompany(slot.companySlug).map((lvl: any) => (
                           <option key={lvl} value={lvl} className="bg-[#111118]">
                             {lvl}
                           </option>
@@ -332,7 +332,7 @@ function CompareContent() {
               <thead>
                 <tr className="border-b border-border-dark text-xs text-text-muted uppercase bg-[#14141d]/50">
                   <th className="py-5 px-6 font-semibold w-1/4">Metric</th>
-                  {resolvedSlotsData.map((d, index) => (
+                  {resolvedSlotsData.map((d: any, index: any) => (
                     <th key={index} className="py-5 px-4 font-bold border-l border-border-dark/50 text-center">
                       <div className="flex flex-col items-center gap-1.5">
                         <span
@@ -356,7 +356,7 @@ function CompareContent() {
                   <td className="py-5 px-6 font-extrabold text-text-primary uppercase tracking-wider text-xs">
                     Total Comp
                   </td>
-                  {resolvedSlotsData.map((d, index) => (
+                  {resolvedSlotsData.map((d: any, index: any) => (
                     <td
                       key={index}
                       className={`py-5 px-4 text-center border-l border-border-dark/50 font-mono text-lg md:text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary ${getCellHighlight(
@@ -372,7 +372,7 @@ function CompareContent() {
                 {/* Base Salary Row */}
                 <tr>
                   <td className="py-4 px-6 text-text-muted font-semibold">Base Salary</td>
-                  {resolvedSlotsData.map((d, index) => (
+                  {resolvedSlotsData.map((d: any, index: any) => (
                     <td
                       key={index}
                       className={`py-4 px-4 text-center border-l border-border-dark/50 font-mono font-medium text-text-primary ${getCellHighlight(
@@ -388,7 +388,7 @@ function CompareContent() {
                 {/* Bonus Row */}
                 <tr>
                   <td className="py-4 px-6 text-text-muted font-semibold">Annual Bonus</td>
-                  {resolvedSlotsData.map((d, index) => (
+                  {resolvedSlotsData.map((d: any, index: any) => (
                     <td
                       key={index}
                       className={`py-4 px-4 text-center border-l border-border-dark/50 font-mono font-medium text-text-primary ${getCellHighlight(
@@ -404,7 +404,7 @@ function CompareContent() {
                 {/* Equity Row */}
                 <tr>
                   <td className="py-4 px-6 text-text-muted font-semibold">Annual Equity (RSUs)</td>
-                  {resolvedSlotsData.map((d, index) => (
+                  {resolvedSlotsData.map((d: any, index: any) => (
                     <td
                       key={index}
                       className={`py-4 px-4 text-center border-l border-border-dark/50 font-mono font-medium text-text-primary ${getCellHighlight(
@@ -420,7 +420,7 @@ function CompareContent() {
                 {/* YOE Row */}
                 <tr>
                   <td className="py-4 px-6 text-text-muted font-semibold">Average YOE</td>
-                  {resolvedSlotsData.map((d, index) => (
+                  {resolvedSlotsData.map((d: any, index: any) => (
                     <td
                       key={index}
                       className={`py-4 px-4 text-center border-l border-border-dark/50 font-mono font-medium text-text-primary ${getCellHighlight(
@@ -436,7 +436,7 @@ function CompareContent() {
                 {/* Level Equivalent Row */}
                 <tr>
                   <td className="py-4 px-6 text-text-muted font-semibold">Equivalent Tier</td>
-                  {resolvedSlotsData.map((d, index) => (
+                  {resolvedSlotsData.map((d: any, index: any) => (
                     <td key={index} className="py-4 px-4 text-center border-l border-border-dark/50 font-medium">
                       <span className="inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold border border-border-dark bg-[#0a0a0f] text-text-primary">
                         {d.levelTier}
@@ -448,7 +448,7 @@ function CompareContent() {
                 {/* Location Row */}
                 <tr>
                   <td className="py-4 px-6 text-text-muted font-semibold">Location</td>
-                  {resolvedSlotsData.map((d, index) => (
+                  {resolvedSlotsData.map((d: any, index: any) => (
                     <td key={index} className="py-4 px-4 text-center border-l border-border-dark/50 text-xs text-text-muted font-medium">
                       {d.location}
                     </td>
@@ -468,7 +468,7 @@ function CompareContent() {
               
               {/* Score legends */}
               <div className="flex flex-col gap-2.5 mt-4">
-                {resolvedSlotsData.map((d, index) => (
+                {resolvedSlotsData.map((d: any, index: any) => (
                   <div key={index} className="flex items-center gap-2 text-xs">
                     <span style={{ backgroundColor: d.companyBg }} className="w-2.5 h-2.5 rounded-full" />
                     <span className="font-bold text-text-primary">{d.companyName}</span>
@@ -488,7 +488,7 @@ function CompareContent() {
 
                 {/* Radar Grid Axes Lines */}
                 {/* Angle offsets in rad from vertical: 0, 72, 144, 216, 288 */}
-                {[[0, -90], [85, -28], [53, 73], [-53, 73], [-85, -28]].map(([x, y], idx) => (
+                {[[0, -90], [85, -28], [53, 73], [-53, 73], [-85, -28]].map(([x, y]: any, idx: any) => (
                   <line
                     key={idx}
                     x1="150"
@@ -508,7 +508,7 @@ function CompareContent() {
                 <text x="50" y="125" textAnchor="end" fill="#64748B" fontSize="10" fontWeight="bold">WLB</text>
 
                 {/* Polygons */}
-                {radarPoints.map((pointsStr, idx) => {
+                {radarPoints.map((pointsStr: any, idx: any) => {
                   const d = resolvedSlotsData[idx];
                   return (
                     <polygon

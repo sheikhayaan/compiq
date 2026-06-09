@@ -28,7 +28,7 @@ function SalariesContent() {
   const [error, setError] = useState<string | null>(null);
 
   const locationsList = useMemo(() => {
-    return Array.from(new Set(salaries.map((s) => s.location))).sort();
+    return Array.from(new Set(salaries.map((s: any) => s.location))).sort();
   }, [salaries]);
 
   // Filter State
@@ -97,7 +97,7 @@ function SalariesContent() {
   }, [filters, search]);
 
   const filteredSalaries = useMemo(() => {
-    return salaries.filter((s) => {
+    return salaries.filter((s: any) => {
       if (filters.companies.length > 1 && !filters.companies.includes(s.company)) return false;
       if (filters.roles.length > 1 && !filters.roles.includes(s.role)) return false;
       if (filters.locations.length > 0 && !filters.locations.includes(s.location)) return false;
@@ -108,7 +108,7 @@ function SalariesContent() {
   // Filter companies based on search inside tab if applicable
   const filteredCompanies = useMemo(() => {
     if (filters.companies.length === 0) return companies;
-    return companies.filter((c) => filters.companies.includes(c.name));
+    return companies.filter((c: any) => filters.companies.includes(c.name));
   }, [companies, filters.companies]);
 
   const switchTab = (tabName: string) => {
@@ -191,7 +191,7 @@ function SalariesContent() {
                 </span>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                {filteredCompanies.map((company) => (
+                {filteredCompanies.map((company: any) => (
                   <CompanyCard key={company.id} company={company} />
                 ))}
                 {filteredCompanies.length === 0 && (

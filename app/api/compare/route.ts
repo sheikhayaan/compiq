@@ -1,20 +1,5 @@
-import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { median, percentile } from '@/lib/stats'
-
-const salarySelect = {
-  baseSalary: true,
-  bonus: true,
-  equity: true,
-  totalComp: true,
-  yearsExp: true,
-  normalizedLevel: true,
-  company: { select: { name: true, slug: true } },
-} satisfies Prisma.SalarySelect
-
-type CompareSalary = Prisma.SalaryGetPayload<{
-  select: typeof salarySelect
-}>
 
 export async function GET(request: Request) {
   try {
@@ -22,7 +7,7 @@ export async function GET(request: Request) {
     const entries = searchParams.getAll('entries')
 
     const data = await Promise.all(
-      entries.map(async (entry: string) => {
+      entries.map(async (entry: any) => {
         const [companySlug, role, level] = entry.split(':')
         const salaries = await prisma.salary.findMany({
           where: {
@@ -30,7 +15,15 @@ export async function GET(request: Request) {
             role: { equals: role, mode: 'insensitive' },
             level: { equals: level, mode: 'insensitive' },
           },
-          select: salarySelect,
+          select: {
+            baseSalary: true,
+            bonus: true,
+            equity: true,
+            totalComp: true,
+            yearsExp: true,
+            normalizedLevel: true,
+            company: { select: { name: true, slug: true } },
+          },
         })
 
         const sample = salaries[0]
@@ -40,14 +33,14 @@ export async function GET(request: Request) {
           role,
           level,
           normalizedLevel: sample?.normalizedLevel ?? null,
-          medianBase: median(salaries.map((salary: CompareSalary) => salary.baseSalary)),
-          medianBonus: median(salaries.map((salary: CompareSalary) => salary.bonus)),
-          medianEquity: median(salaries.map((salary: CompareSalary) => salary.equity)),
-          medianTC: median(salaries.map((salary: CompareSalary) => salary.totalComp)),
-          p25TC: percentile(salaries.map((salary: CompareSalary) => salary.totalComp), 25),
-          p75TC: percentile(salaries.map((salary: CompareSalary) => salary.totalComp), 75),
+          medianBase: median(salaries.map((salary: any) => salary.baseSalary)),
+          medianBonus: median(salaries.map((salary: any) => salary.bonus)),
+          medianEquity: median(salaries.map((salary: any) => salary.equity)),
+          medianTC: median(salaries.map((salary: any) => salary.totalComp)),
+          p25TC: percentile(salaries.map((salary: any) => salary.totalComp), 25),
+          p75TC: percentile(salaries.map((salary: any) => salary.totalComp), 75),
           count: salaries.length,
-          medianYOE: median(salaries.flatMap((salary: CompareSalary) => salary.yearsExp === null ? [] : [salary.yearsExp])),
+          medianYOE: median(salaries.flatMap((salary: any) => salary.yearsExp === null ? [] : [salary.yearsExp])),
         }
       })
     )

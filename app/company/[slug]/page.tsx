@@ -42,7 +42,7 @@ export default function CompanyProfilePage() {
     let totalBase = 0;
     let totalBonus = 0;
     let totalEquity = 0;
-    companySalaries.forEach((s) => {
+    companySalaries.forEach((s: any) => {
       totalBase += s.base;
       totalBonus += s.bonus;
       totalEquity += s.equity;
@@ -233,7 +233,7 @@ export default function CompanyProfilePage() {
               </p>
 
               <div className="flex flex-col gap-3">
-                {company.levels.map((lvl) => (
+                {company.levels.map((lvl: any) => (
                   <div
                     key={lvl.code}
                     className="flex items-center justify-between p-3 rounded-lg bg-[#0e0e15] hover:bg-[#151522] border border-border-dark/40 transition-colors"
@@ -293,7 +293,7 @@ export default function CompanyProfilePage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border-dark/30 text-sm">
-                {company.levels.map((lvl) => (
+                {company.levels.map((lvl: any) => (
                   <tr key={lvl.code} className="hover:bg-[#111118]/80 transition-colors">
                     <td className="py-4 px-6 font-mono font-bold text-text-primary">{lvl.code}</td>
                     <td className="py-4 px-4 text-text-primary font-medium">{lvl.name}</td>

@@ -42,7 +42,7 @@ export default function LevelsPage() {
         </h3>
         
         <div className="flex flex-col gap-4">
-          {mockLevelsEquivalency.map((eq) => {
+          {mockLevelsEquivalency.map((eq: any) => {
             // Check if active company level is in this band to highlight it
             const activeCompanyLevelCode = 
               selectedCompanySlug === 'google' ? eq.google :
@@ -122,7 +122,7 @@ export default function LevelsPage() {
           
           {/* Company Selector Tab Buttons */}
           <div className="flex gap-1.5 flex-wrap bg-[#111118] border border-border-dark p-1 rounded-xl">
-            {mockCompanies.map((c) => (
+            {mockCompanies.map((c: any) => (
               <button
                 key={c.id}
                 onClick={() => setSelectedCompanySlug(c.slug)}
@@ -168,9 +168,9 @@ export default function LevelsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border-dark/30 text-sm">
-                {company.levels.map((lvl) => {
+                {company.levels.map((lvl: any) => {
                   // Find equivalents
-                  const eqBand = mockLevelsEquivalency.find((eq) => eq.tier === lvl.tier);
+                  const eqBand = mockLevelsEquivalency.find((eq: any) => eq.tier === lvl.tier);
                   const equivs = eqBand
                     ? [
                         selectedCompanySlug !== 'google' ? `Google ${eqBand.google}` : null,

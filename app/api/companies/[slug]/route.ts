@@ -48,41 +48,25 @@ export async function GET(_request: Request, context: RouteContext<'/api/compani
       return Response.json({ data: null, error: 'Company not found' }, { status: 404 })
     }
 
-    type SalaryItem = (typeof company.salaries)[number]
-    type GroupedSalary = {
-      level: string
-      normalizedLevel: string
-      count: number
-      medianBase: number
-      medianBonus: number
-      medianEquity: number
-      medianTC: number
-    }
-    type LevelItem = {
-      level: string
-      normalizedLevel: string
-      medianTC: number
-    }
-
-    const grouped = new Map<string, SalaryItem[]>()
-    company.salaries.forEach((salary: SalaryItem) => {
+    const grouped = new Map<string, any[]>()
+    company.salaries.forEach((salary: any) => {
       const existing = grouped.get(salary.level) ?? []
       existing.push(salary)
       grouped.set(salary.level, existing)
     })
 
-    const groupedSalaries = Array.from(grouped.entries()).map(([level, salaries]: [string, SalaryItem[]]): GroupedSalary => ({
+    const groupedSalaries = Array.from(grouped.entries()).map(([level, salaries]: any) => ({
       level,
       normalizedLevel: salaries[0]?.normalizedLevel ?? 'Mid',
       count: salaries.length,
-      medianBase: median(salaries.map((salary: SalaryItem) => salary.baseSalary)) ?? 0,
-      medianBonus: median(salaries.map((salary: SalaryItem) => salary.bonus)) ?? 0,
-      medianEquity: median(salaries.map((salary: SalaryItem) => salary.equity)) ?? 0,
-      medianTC: median(salaries.map((salary: SalaryItem) => salary.totalComp)) ?? 0,
+      medianBase: median(salaries.map((salary: any) => salary.baseSalary)) ?? 0,
+      medianBonus: median(salaries.map((salary: any) => salary.bonus)) ?? 0,
+      medianEquity: median(salaries.map((salary: any) => salary.equity)) ?? 0,
+      medianTC: median(salaries.map((salary: any) => salary.totalComp)) ?? 0,
     }))
 
     const levels = groupedSalaries
-      .map((level: LevelItem) => ({
+      .map((level: any) => ({
         code: level.level,
         name: `${level.normalizedLevel} ${company.name}`,
         tier: level.normalizedLevel,
@@ -93,7 +77,7 @@ export async function GET(_request: Request, context: RouteContext<'/api/compani
           level.normalizedLevel === 'Staff' ? 9 : 12,
         medianTC: level.medianTC,
       }))
-      .sort((a: { typicalYoe: number }, b: { typicalYoe: number }) => a.typicalYoe - b.typicalYoe)
+      .sort((a: any, b: any) => a.typicalYoe - b.typicalYoe)
 
     const data = {
       id: company.id,
@@ -103,9 +87,9 @@ export async function GET(_request: Request, context: RouteContext<'/api/compani
       logo: company.logo,
       _count: { salaries: company._count.salaries },
       salariesReported: company._count.salaries,
-      medianTC: median(company.salaries.map((salary: SalaryItem) => salary.totalComp)) ?? 0,
-      medianBase: median(company.salaries.map((salary: SalaryItem) => salary.baseSalary)) ?? 0,
-      topLevelTC: Math.max(0, ...company.salaries.map((salary: SalaryItem) => salary.totalComp)),
+      medianTC: median(company.salaries.map((salary: any) => salary.totalComp)) ?? 0,
+      medianBase: median(company.salaries.map((salary: any) => salary.baseSalary)) ?? 0,
+      topLevelTC: Math.max(0, ...company.salaries.map((salary: any) => salary.totalComp)),
       levels,
       salaries: company.salaries,
       groupedSalaries,

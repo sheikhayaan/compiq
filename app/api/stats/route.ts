@@ -1,15 +1,5 @@
-import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { median, percentile } from '@/lib/stats'
-
-const salarySelect = {
-  role: true,
-  totalComp: true,
-} satisfies Prisma.SalarySelect
-
-type StatsSalary = Prisma.SalaryGetPayload<{
-  select: typeof salarySelect
-}>
 
 export async function GET() {
   try {
@@ -17,7 +7,10 @@ export async function GET() {
     const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
     const [salaries, totalCompanies, mostReportedCompany, recentRoles] = await Promise.all([
       prisma.salary.findMany({
-        select: salarySelect,
+        select: {
+          role: true,
+          totalComp: true,
+        },
       }),
       prisma.company.count(),
       prisma.company.findFirst({
@@ -38,10 +31,10 @@ export async function GET() {
       }),
     ])
 
-    const totalComps = salaries.map((salary: StatsSalary) => salary.totalComp)
+    const totalComps = salaries.map((salary: any) => salary.totalComp)
     const sweComps = salaries
-      .filter((salary: StatsSalary) => salary.role.toLowerCase().includes('engineer'))
-      .map((salary: StatsSalary) => salary.totalComp)
+      .filter((salary: any) => salary.role.toLowerCase().includes('engineer'))
+      .map((salary: any) => salary.totalComp)
 
     return Response.json({
       data: {

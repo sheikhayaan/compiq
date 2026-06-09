@@ -122,12 +122,12 @@ export default function CompaniesPage() {
 
   const filtered = useMemo(() => {
     return companies
-      .filter((company) => company.name.toLowerCase().includes(search.toLowerCase()))
-      .filter((company) => {
+      .filter((company: any) => company.name.toLowerCase().includes(search.toLowerCase()))
+      .filter((company: any) => {
         if (category === 'All') return true
         return getCategory(company.name).includes(category)
       })
-      .sort((a, b) => {
+      .sort((a: any, b: any) => {
         if (sortBy === 'reports') return reportCount(b) - reportCount(a)
         if (sortBy === 'tc') return (b.medianTC || 0) - (a.medianTC || 0)
         if (sortBy === 'alpha') return a.name.localeCompare(b.name)
@@ -165,7 +165,7 @@ export default function CompaniesPage() {
             </div>
 
             <div className="flex flex-wrap gap-2">
-              {categories.map((item) => {
+              {categories.map((item: any) => {
                 const active = category === item
                 return (
                   <button
@@ -193,7 +193,7 @@ export default function CompaniesPage() {
             { label: 'Total Salary Reports', value: stats?.totalSalaries.toLocaleString() ?? '0' },
             { label: 'Most Reported Company', value: stats?.mostSearchedCompany ?? 'N/A' },
             { label: 'Median SWE TC', value: formatStatTC(stats?.medianSWETC ?? 0) },
-          ].map((item) => (
+          ].map((item: any) => (
             <div
               key={item.label}
               className="rounded-2xl border border-[rgba(30,30,46,1)] bg-[rgba(17,17,24,0.8)] p-5"
@@ -224,7 +224,7 @@ export default function CompaniesPage() {
 
         {loading ? (
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
-            {Array.from({ length: 6 }).map((_, index) => (
+            {Array.from({ length: 6 }).map((_: any, index: any) => (
               <SkeletonCard key={index} />
             ))}
           </div>
@@ -240,7 +240,7 @@ export default function CompaniesPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
-            {filtered.map((company) => {
+            {filtered.map((company: any) => {
               const currency = currencyForCompany(company)
               const reports = reportCount(company)
               return (
