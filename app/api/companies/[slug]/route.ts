@@ -48,21 +48,22 @@ export async function GET(_request: Request, context: RouteContext<'/api/compani
       return Response.json({ data: null, error: 'Company not found' }, { status: 404 })
     }
 
-    const grouped = new Map<string, typeof company.salaries>()
-    company.salaries.forEach((salary) => {
+    type SalaryItem = (typeof company.salaries)[number]
+    const grouped = new Map<string, SalaryItem[]>()
+    company.salaries.forEach((salary: SalaryItem) => {
       const existing = grouped.get(salary.level) ?? []
       existing.push(salary)
       grouped.set(salary.level, existing)
     })
 
-    const groupedSalaries = Array.from(grouped.entries()).map(([level, salaries]) => ({
+    const groupedSalaries = Array.from(grouped.entries()).map(([level, salaries]: [string, SalaryItem[]]) => ({
       level,
       normalizedLevel: salaries[0]?.normalizedLevel ?? 'Mid',
       count: salaries.length,
-      medianBase: median(salaries.map((salary) => salary.baseSalary)) ?? 0,
-      medianBonus: median(salaries.map((salary) => salary.bonus)) ?? 0,
-      medianEquity: median(salaries.map((salary) => salary.equity)) ?? 0,
-      medianTC: median(salaries.map((salary) => salary.totalComp)) ?? 0,
+      medianBase: median(salaries.map((salary: SalaryItem) => salary.baseSalary)) ?? 0,
+      medianBonus: median(salaries.map((salary: SalaryItem) => salary.bonus)) ?? 0,
+      medianEquity: median(salaries.map((salary: SalaryItem) => salary.equity)) ?? 0,
+      medianTC: median(salaries.map((salary: SalaryItem) => salary.totalComp)) ?? 0,
     }))
 
     const levels = groupedSalaries
@@ -87,9 +88,9 @@ export async function GET(_request: Request, context: RouteContext<'/api/compani
       logo: company.logo,
       _count: { salaries: company._count.salaries },
       salariesReported: company._count.salaries,
-      medianTC: median(company.salaries.map((salary) => salary.totalComp)) ?? 0,
-      medianBase: median(company.salaries.map((salary) => salary.baseSalary)) ?? 0,
-      topLevelTC: Math.max(0, ...company.salaries.map((salary) => salary.totalComp)),
+      medianTC: median(company.salaries.map((salary: SalaryItem) => salary.totalComp)) ?? 0,
+      medianBase: median(company.salaries.map((salary: SalaryItem) => salary.baseSalary)) ?? 0,
+      topLevelTC: Math.max(0, ...company.salaries.map((salary: SalaryItem) => salary.totalComp)),
       levels,
       salaries: company.salaries,
       groupedSalaries,
