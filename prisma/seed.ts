@@ -71,75 +71,82 @@ type Currency = (typeof countries)[CountryName]['currency']
 
 const compensationBands: Record<Currency, Record<LevelName, Range>> = {
   USD: {
-    Junior: { base: [120000, 145000], bonus: [10000, 20000], equity: [30000, 60000] },
-    Mid: { base: [155000, 185000], bonus: [20000, 35000], equity: [60000, 100000] },
-    Senior: { base: [195000, 230000], bonus: [35000, 55000], equity: [120000, 180000] },
-    Staff: { base: [240000, 280000], bonus: [55000, 80000], equity: [180000, 250000] },
-    Principal: { base: [290000, 350000], bonus: [80000, 120000], equity: [250000, 380000] },
+    Junior: { base: [120000, 140000], bonus: [10000, 18000], equity: [25000, 50000] },
+    Mid: { base: [145000, 175000], bonus: [18000, 30000], equity: [50000, 85000] },
+    Senior: { base: [180000, 220000], bonus: [30000, 50000], equity: [85000, 140000] },
+    Staff: { base: [225000, 265000], bonus: [50000, 70000], equity: [140000, 180000] },
+    Principal: { base: [270000, 320000], bonus: [70000, 100000], equity: [180000, 220000] },
   },
   INR: {
-    Junior: { base: [1500000, 2500000], bonus: [200000, 400000], equity: [0, 500000] },
-    Mid: { base: [2800000, 4000000], bonus: [400000, 700000], equity: [500000, 1200000] },
-    Senior: { base: [4500000, 6500000], bonus: [800000, 1400000], equity: [1200000, 2500000] },
-    Staff: { base: [7000000, 10000000], bonus: [1500000, 2500000], equity: [2500000, 5000000] },
-    Principal: { base: [11000000, 15000000], bonus: [2500000, 4000000], equity: [5000000, 9000000] },
+    Junior: { base: [1200000, 2000000], bonus: [150000, 300000], equity: [0, 300000] },
+    Mid: { base: [2200000, 3500000], bonus: [300000, 600000], equity: [300000, 800000] },
+    Senior: { base: [3800000, 5500000], bonus: [600000, 1000000], equity: [800000, 1800000] },
+    Staff: { base: [5800000, 8000000], bonus: [1000000, 1800000], equity: [1800000, 3000000] },
+    Principal: { base: [8500000, 11000000], bonus: [1800000, 3000000], equity: [3000000, 5000000] },
   },
   GBP: {
-    Junior: { base: [45000, 60000], bonus: [3000, 8000], equity: [5000, 15000] },
-    Mid: { base: [65000, 85000], bonus: [8000, 15000], equity: [15000, 30000] },
-    Senior: { base: [90000, 120000], bonus: [15000, 25000], equity: [30000, 60000] },
-    Staff: { base: [125000, 155000], bonus: [25000, 40000], equity: [60000, 100000] },
-    Principal: { base: [160000, 200000], bonus: [40000, 60000], equity: [100000, 150000] },
+    Junior: { base: [42000, 55000], bonus: [3000, 7000], equity: [4000, 12000] },
+    Mid: { base: [58000, 75000], bonus: [7000, 12000], equity: [12000, 25000] },
+    Senior: { base: [78000, 100000], bonus: [12000, 20000], equity: [25000, 45000] },
+    Staff: { base: [105000, 130000], bonus: [20000, 32000], equity: [45000, 75000] },
+    Principal: { base: [135000, 165000], bonus: [32000, 50000], equity: [75000, 110000] },
   },
   CAD: {
-    Junior: { base: [80000, 100000], bonus: [5000, 10000], equity: [10000, 25000] },
-    Mid: { base: [105000, 130000], bonus: [10000, 20000], equity: [25000, 50000] },
-    Senior: { base: [135000, 165000], bonus: [20000, 35000], equity: [50000, 90000] },
-    Staff: { base: [170000, 210000], bonus: [35000, 55000], equity: [90000, 140000] },
-    Principal: { base: [215000, 260000], bonus: [55000, 80000], equity: [140000, 200000] },
+    Junior: { base: [75000, 95000], bonus: [5000, 9000], equity: [8000, 20000] },
+    Mid: { base: [98000, 120000], bonus: [9000, 16000], equity: [20000, 40000] },
+    Senior: { base: [125000, 155000], bonus: [16000, 28000], equity: [40000, 70000] },
+    Staff: { base: [158000, 190000], bonus: [28000, 42000], equity: [70000, 100000] },
+    Principal: { base: [195000, 235000], bonus: [42000, 60000], equity: [100000, 130000] },
   },
   EUR: {
-    Junior: { base: [50000, 65000], bonus: [3000, 8000], equity: [5000, 15000] },
-    Mid: { base: [70000, 90000], bonus: [8000, 15000], equity: [15000, 30000] },
-    Senior: { base: [95000, 125000], bonus: [15000, 25000], equity: [30000, 60000] },
-    Staff: { base: [130000, 160000], bonus: [25000, 40000], equity: [60000, 100000] },
-    Principal: { base: [165000, 200000], bonus: [40000, 60000], equity: [100000, 150000] },
+    Junior: { base: [45000, 60000], bonus: [3000, 7000], equity: [4000, 12000] },
+    Mid: { base: [63000, 80000], bonus: [7000, 12000], equity: [12000, 25000] },
+    Senior: { base: [83000, 105000], bonus: [12000, 20000], equity: [25000, 45000] },
+    Staff: { base: [108000, 135000], bonus: [20000, 32000], equity: [45000, 75000] },
+    Principal: { base: [138000, 168000], bonus: [32000, 50000], equity: [75000, 105000] },
   },
   SGD: {
-    Junior: { base: [60000, 80000], bonus: [5000, 10000], equity: [10000, 20000] },
-    Mid: { base: [85000, 110000], bonus: [10000, 18000], equity: [20000, 40000] },
-    Senior: { base: [115000, 145000], bonus: [18000, 30000], equity: [40000, 80000] },
-    Staff: { base: [150000, 185000], bonus: [30000, 45000], equity: [80000, 120000] },
-    Principal: { base: [190000, 230000], bonus: [45000, 65000], equity: [120000, 170000] },
+    Junior: { base: [55000, 72000], bonus: [4000, 8000], equity: [8000, 18000] },
+    Mid: { base: [75000, 95000], bonus: [8000, 14000], equity: [18000, 35000] },
+    Senior: { base: [98000, 125000], bonus: [14000, 24000], equity: [35000, 65000] },
+    Staff: { base: [128000, 158000], bonus: [24000, 38000], equity: [65000, 95000] },
+    Principal: { base: [162000, 198000], bonus: [38000, 55000], equity: [95000, 125000] },
   },
   AUD: {
-    Junior: { base: [75000, 95000], bonus: [5000, 10000], equity: [10000, 20000] },
-    Mid: { base: [100000, 125000], bonus: [10000, 18000], equity: [20000, 40000] },
-    Senior: { base: [130000, 160000], bonus: [18000, 28000], equity: [40000, 70000] },
-    Staff: { base: [165000, 200000], bonus: [28000, 42000], equity: [70000, 110000] },
-    Principal: { base: [205000, 250000], bonus: [42000, 60000], equity: [110000, 160000] },
+    Junior: { base: [70000, 88000], bonus: [4000, 8000], equity: [8000, 18000] },
+    Mid: { base: [90000, 112000], bonus: [8000, 14000], equity: [18000, 35000] },
+    Senior: { base: [115000, 142000], bonus: [14000, 24000], equity: [35000, 60000] },
+    Staff: { base: [145000, 175000], bonus: [24000, 36000], equity: [60000, 90000] },
+    Principal: { base: [178000, 215000], bonus: [36000, 52000], equity: [90000, 120000] },
   },
   AED: {
-    Junior: { base: [120000, 160000], bonus: [10000, 20000], equity: [0, 20000] },
-    Mid: { base: [165000, 210000], bonus: [20000, 35000], equity: [20000, 50000] },
-    Senior: { base: [215000, 270000], bonus: [35000, 55000], equity: [50000, 100000] },
-    Staff: { base: [275000, 330000], bonus: [55000, 80000], equity: [100000, 160000] },
-    Principal: { base: [335000, 400000], bonus: [80000, 120000], equity: [160000, 240000] },
+    Junior: { base: [110000, 140000], bonus: [8000, 15000], equity: [0, 15000] },
+    Mid: { base: [145000, 180000], bonus: [15000, 28000], equity: [15000, 40000] },
+    Senior: { base: [185000, 225000], bonus: [28000, 44000], equity: [40000, 80000] },
+    Staff: { base: [228000, 272000], bonus: [44000, 62000], equity: [80000, 120000] },
+    Principal: { base: [275000, 325000], bonus: [62000, 90000], equity: [120000, 160000] },
   },
   JPY: {
-    Junior: { base: [5000000, 7000000], bonus: [500000, 1000000], equity: [0, 1000000] },
-    Mid: { base: [7500000, 9500000], bonus: [1000000, 1800000], equity: [1000000, 2500000] },
-    Senior: { base: [10000000, 13000000], bonus: [1800000, 3000000], equity: [2500000, 5000000] },
-    Staff: { base: [13500000, 17000000], bonus: [3000000, 4500000], equity: [5000000, 8000000] },
-    Principal: { base: [17500000, 22000000], bonus: [4500000, 6500000], equity: [8000000, 12000000] },
+    Junior: { base: [4500000, 6000000], bonus: [400000, 800000], equity: [0, 800000] },
+    Mid: { base: [6200000, 8000000], bonus: [800000, 1400000], equity: [800000, 2000000] },
+    Senior: { base: [8200000, 10500000], bonus: [1400000, 2200000], equity: [2000000, 3800000] },
+    Staff: { base: [10800000, 13500000], bonus: [2200000, 3400000], equity: [3800000, 6000000] },
+    Principal: { base: [13800000, 17000000], bonus: [3400000, 5000000], equity: [6000000, 8500000] },
   },
   BRL: {
-    Junior: { base: [80000, 120000], bonus: [8000, 15000], equity: [0, 20000] },
-    Mid: { base: [125000, 165000], bonus: [15000, 25000], equity: [20000, 50000] },
-    Senior: { base: [170000, 220000], bonus: [25000, 40000], equity: [50000, 100000] },
-    Staff: { base: [225000, 280000], bonus: [40000, 60000], equity: [100000, 160000] },
-    Principal: { base: [285000, 350000], bonus: [60000, 90000], equity: [160000, 240000] },
+    Junior: { base: [75000, 105000], bonus: [7000, 13000], equity: [0, 18000] },
+    Mid: { base: [108000, 140000], bonus: [13000, 22000], equity: [18000, 40000] },
+    Senior: { base: [143000, 180000], bonus: [22000, 35000], equity: [40000, 80000] },
+    Staff: { base: [183000, 222000], bonus: [35000, 52000], equity: [80000, 120000] },
+    Principal: { base: [225000, 275000], bonus: [52000, 75000], equity: [120000, 150000] },
   },
+}
+
+const maxTC: Record<string, number> = {
+  USD: 550000, INR: 12000000, GBP: 280000,
+  CAD: 380000, EUR: 280000, SGD: 380000,
+  AUD: 380000, AED: 500000, JPY: 22000000,
+  BRL: 450000,
 }
 
 const yoeRanges: Record<LevelName, [number, number]> = {
@@ -302,20 +309,7 @@ async function main() {
     const totalComp = baseSalary + bonus + equity
     const currency = country.currency
 
-    const unrealistic =
-      (currency === 'USD' && totalComp > 800000) ||
-      (currency === 'INR' && totalComp > 20000000) ||
-      (currency === 'GBP' && totalComp > 400000) ||
-      (currency === 'CAD' && totalComp > 500000) ||
-      (currency === 'EUR' && totalComp > 400000) ||
-      (currency === 'SGD' && totalComp > 500000) ||
-      (currency === 'AUD' && totalComp > 500000) ||
-      (currency === 'AED' && totalComp > 700000) ||
-      (currency === 'JPY' && totalComp > 30000000) ||
-      (currency === 'BRL' && totalComp > 600000)
-
-    // Skip unrealistic entries
-    if (unrealistic) {
+    if (totalComp > (maxTC[currency] || 550000)) {
       seed += 1
       continue
     }

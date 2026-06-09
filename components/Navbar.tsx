@@ -10,6 +10,7 @@ export default function Navbar() {
   const { data: session, status } = useSession()
   const [scrolled, setScrolled] = useState(false)
   const [profileOpen, setProfileOpen] = useState(false)
+  const [mobileOpen, setMobileOpen] = useState(false)
   const [mounted, setMounted] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
 
@@ -31,6 +32,12 @@ export default function Navbar() {
     }
     document.addEventListener('mousedown', handleClickOutside)
     return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  useEffect(() => {
+    const handler = () => setMobileOpen(false)
+    window.addEventListener('resize', handler)
+    return () => window.removeEventListener('resize', handler)
   }, [])
 
   const links = [
@@ -289,8 +296,121 @@ export default function Navbar() {
           >
             <span>+</span> Submit Salary
           </Link>
+
+          <button
+            type="button"
+            onClick={() => setMobileOpen((prev) => !prev)}
+            className="md:hidden flex flex-col gap-1.5 p-2 rounded-lg transition-all"
+            style={{
+              background: mobileOpen ? 'rgba(99,102,241,0.15)' : 'transparent',
+              border: '1px solid rgba(255,255,255,0.08)',
+            }}
+            aria-label="Toggle mobile menu"
+            aria-expanded={mobileOpen}
+          >
+            <span className={`block w-5 h-0.5 bg-white transition-all duration-300 ${mobileOpen ? 'rotate-45 translate-y-2' : ''}`} />
+            <span className={`block w-5 h-0.5 bg-white transition-all duration-300 ${mobileOpen ? 'opacity-0' : ''}`} />
+            <span className={`block w-5 h-0.5 bg-white transition-all duration-300 ${mobileOpen ? '-rotate-45 -translate-y-2' : ''}`} />
+          </button>
         </div>
       </div>
+
+      {mobileOpen && (
+        <div
+          className="md:hidden absolute top-16 inset-x-0 z-50"
+          style={{
+            background: 'rgba(10,10,15,0.98)',
+            backdropFilter: 'blur(20px)',
+            borderBottom: '1px solid rgba(99,102,241,0.2)',
+            boxShadow: '0 20px 40px rgba(0,0,0,0.5)',
+          }}
+        >
+          <div className="px-4 py-4 space-y-1">
+            {links.map(({ href, label }) => {
+              const active = pathname === href || pathname.startsWith(`${href}/`)
+              return (
+                <Link
+                  key={href}
+                  href={href}
+                  onClick={() => setMobileOpen(false)}
+                  className="flex items-center gap-3 px-4 py-3 rounded-xl transition-all"
+                  style={{
+                    background: active ? 'rgba(99,102,241,0.15)' : 'transparent',
+                    color: active ? '#818cf8' : '#94a3b8',
+                    border: active ? '1px solid rgba(99,102,241,0.25)' : '1px solid transparent',
+                  }}
+                >
+                  <span className="text-sm font-medium">{label}</span>
+                  {active && (
+                    <span className="ml-auto text-indigo-400 text-xs">
+                      *
+                    </span>
+                  )}
+                </Link>
+              )
+            })}
+
+            <div className="pt-2 border-t border-slate-800">
+              {session ? (
+                <div className="space-y-1">
+                  <div className="flex items-center gap-3 px-4 py-3">
+                    {session.user?.image ? (
+                      <img src={session.user.image} className="w-8 h-8 rounded-full" alt="avatar" />
+                    ) : (
+                      <div className="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-white text-sm font-bold">
+                        {session.user?.name?.[0]?.toUpperCase() || 'U'}
+                      </div>
+                    )}
+                    <div className="min-w-0">
+                      <p className="text-white text-sm font-medium truncate">{session.user?.name}</p>
+                      <p className="text-slate-500 text-xs truncate">{session.user?.email}</p>
+                    </div>
+                  </div>
+                  <Link
+                    href="/submit"
+                    onClick={() => setMobileOpen(false)}
+                    className="flex items-center gap-3 px-4 py-3 rounded-xl text-white text-sm font-semibold"
+                    style={{
+                      background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+                    }}
+                  >
+                    + Submit Salary
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMobileOpen(false)
+                      signOut({ callbackUrl: '/' })
+                    }}
+                    className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-red-400 text-sm font-medium"
+                    style={{
+                      background: 'rgba(239,68,68,0.08)',
+                      border: '1px solid rgba(239,68,68,0.15)',
+                    }}
+                  >
+                    Sign Out
+                  </button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMobileOpen(false)
+                    signIn('google')
+                  }}
+                  className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-white text-sm font-medium"
+                  style={{
+                    background: 'rgba(99,102,241,0.1)',
+                    border: '1px solid rgba(99,102,241,0.3)',
+                  }}
+                >
+                  Login with Google
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </nav>
   )
 }
