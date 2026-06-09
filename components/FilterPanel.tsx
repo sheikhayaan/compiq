@@ -251,7 +251,7 @@ export default function FilterPanel({
       <div className="flex flex-col gap-2">
         <div className="flex justify-between items-center text-xs">
           <label className="font-semibold uppercase text-text-muted tracking-wider">
-            Max Total Comp
+            Max Annual Total Comp
           </label>
           <span suppressHydrationWarning className="font-bold text-primary">
             {tcRange >= 1000000

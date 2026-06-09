@@ -4,6 +4,7 @@ import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { SalaryEntry, mockCompanies } from '@/lib/mockData';
 import LevelBadge from './LevelBadge';
+import { formatConvertedAnnualCurrency } from '@/lib/currency';
 
 interface SalaryTableProps {
   data: SalaryEntry[];
@@ -65,57 +66,10 @@ export default function SalaryTable({ data, displayCurrency }: SalaryTableProps)
     return sortedData.slice(startIdx, startIdx + itemsPerPage);
   }, [sortedData, currentPage]);
 
-  const toUsdRates: Record<string, number> = {
-    USD: 1,
-    INR: 1 / 83,
-    GBP: 1.27,
-    EUR: 1.08,
-    CAD: 0.74,
-    SGD: 0.74,
-    AUD: 0.66,
-    AED: 0.27,
-    JPY: 0.0067,
-    BRL: 0.2,
-  };
-
-  const convertAmount = (amount: number, sourceCurrency: string) => {
-    if (!displayCurrency) return amount;
-    const usd = amount * (toUsdRates[sourceCurrency] ?? 1);
-    return displayCurrency === 'INR' ? usd * 83 : usd;
-  };
-
-  const formatInr = (amount: number) => {
-    return `₹${(amount / 10000000).toFixed(2)}L`
-  };
-
   const formatCurrency = (amount: number, currency: string = 'USD'): string => {
     if (!amount || amount === 0) return 'N/A'
-    const finalAmount = convertAmount(amount, currency)
-    const finalCurrency = displayCurrency ?? currency
-    switch(finalCurrency) {
-      case 'INR':
-        return formatInr(finalAmount)
-      case 'GBP':
-        return `£${Math.round(finalAmount/1000)}k`
-      case 'EUR':
-        return `€${Math.round(finalAmount/1000)}k`
-      case 'CAD':
-        return `CA$${Math.round(finalAmount/1000)}k`
-      case 'SGD':
-        return `S$${Math.round(finalAmount/1000)}k`
-      case 'AUD':
-        return `A$${Math.round(finalAmount/1000)}k`
-      case 'AED':
-        return `AED ${Math.round(finalAmount/1000)}k`
-      case 'JPY':
-        return `¥${(finalAmount/1000000).toFixed(1)}M`
-      case 'BRL':
-        return `R$${Math.round(finalAmount/1000)}k`
-      default:
-        return `$${Math.round(finalAmount/1000)}k`
-    }
+    return formatConvertedAnnualCurrency(amount, currency, displayCurrency ?? 'USD')
   };
-
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
     return date.toLocaleDateString('en-US', {
@@ -129,19 +83,22 @@ export default function SalaryTable({ data, displayCurrency }: SalaryTableProps)
     if (sortField !== field) {
       return (
         <span className="text-text-muted/30 ml-1 transition-opacity opacity-0 group-hover:opacity-100">
-          ↕
+          Ã¢â€ â€¢
         </span>
       );
     }
     return (
       <span className="text-primary ml-1 font-bold">
-        {sortDirection === 'asc' ? '↑' : '↓'}
+        {sortDirection === 'asc' ? 'Ã¢â€ â€˜' : 'Ã¢â€ â€œ'}
       </span>
     );
   };
 
   return (
     <div suppressHydrationWarning className="flex flex-col gap-4 w-full">
+      <p className="text-xs text-text-muted">
+        All salary amounts are annual. INR rows show Indian annual compensation; switching currency converts annual values for display.
+      </p>
       {/* Table Wrapper */}
       <div className="w-full overflow-x-auto rounded-xl border border-border-dark bg-card">
         <table className="w-full text-left border-collapse min-w-[900px]">
@@ -181,25 +138,25 @@ export default function SalaryTable({ data, displayCurrency }: SalaryTableProps)
                 onClick={() => handleSort('base')}
                 className="py-4 px-4 cursor-pointer group hover:text-text-primary transition-colors text-right"
               >
-                Base {renderSortIcon('base')}
+                Annual Base {renderSortIcon('base')}
               </th>
               <th
                 onClick={() => handleSort('bonus')}
                 className="py-4 px-4 cursor-pointer group hover:text-text-primary transition-colors text-right"
               >
-                Bonus {renderSortIcon('bonus')}
+                Annual Bonus {renderSortIcon('bonus')}
               </th>
               <th
                 onClick={() => handleSort('equity')}
                 className="py-4 px-4 cursor-pointer group hover:text-text-primary transition-colors text-right"
               >
-                Equity {renderSortIcon('equity')}
+                Annual Equity {renderSortIcon('equity')}
               </th>
               <th
                 onClick={() => handleSort('totalComp')}
                 className="py-4 px-6 cursor-pointer group hover:text-text-primary transition-colors text-right text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary font-bold"
               >
-                Total Comp {renderSortIcon('totalComp')}
+                Annual Total Comp {renderSortIcon('totalComp')}
               </th>
               <th
                 onClick={() => handleSort('date')}
@@ -250,16 +207,16 @@ export default function SalaryTable({ data, displayCurrency }: SalaryTableProps)
                   <td className="py-4 px-4 text-center text-text-primary font-medium">{row.yoe}</td>
                   <td className="py-4 px-4 text-text-muted">{row.location}</td>
                   <td className="py-4 px-4 text-right text-text-muted font-mono">
-                    {formatCurrency(row.base, row.currency)}
+                    {formatCurrency(row.base, row.currency || 'USD')}
                   </td>
                   <td className="py-4 px-4 text-right text-text-muted font-mono">
-                    {row.bonus > 0 ? formatCurrency(row.bonus, row.currency) : '—'}
+                    {row.bonus > 0 ? formatCurrency(row.bonus, row.currency || 'USD') : 'â€”'}
                   </td>
                   <td className="py-4 px-4 text-right text-text-muted font-mono">
-                    {row.equity > 0 ? formatCurrency(row.equity, row.currency) : '—'}
+                    {row.equity > 0 ? formatCurrency(row.equity, row.currency || 'USD') : 'â€”'}
                   </td>
                   <td className="py-4 px-6 text-right font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary font-mono text-base">
-                    {formatCurrency(row.totalComp, row.currency)}
+                    {formatCurrency(row.totalComp, row.currency || 'USD')}
                   </td>
                   <td suppressHydrationWarning className="py-4 px-4 text-right text-text-muted text-xs">
                     {formatDate(row.date)}

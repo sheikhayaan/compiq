@@ -1,6 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { Company } from '@/lib/mockData';
+import { formatConvertedAnnualCurrency } from '@/lib/currency';
 
 interface CompanyCardProps {
   company: Company;
@@ -11,8 +12,7 @@ interface CompanyCardProps {
 export default function CompanyCard({ company, className = '', displayCurrency = 'USD' }: CompanyCardProps) {
   const formatCurrency = (val: number) => {
     if (!val) return 'N/A'
-    if (displayCurrency === 'INR') return `₹${((val * 83) / 10000000).toFixed(2)}L`
-    return `$${Math.round(val / 1000)}k`
+    return formatConvertedAnnualCurrency(val, company.dominantCurrency || 'USD', displayCurrency)
   };
 
   return (
@@ -45,7 +45,7 @@ export default function CompanyCard({ company, className = '', displayCurrency =
         <div className="grid grid-cols-2 gap-4 mt-6 border-t border-border-dark pt-4">
           <div>
             <p className="text-[10px] uppercase font-semibold text-text-muted tracking-wider">
-              Median TC
+              Annual Median TC
             </p>
             <p className="text-base font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">
               {formatCurrency(company.medianTC)}

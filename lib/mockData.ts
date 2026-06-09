@@ -13,6 +13,7 @@ export interface SalaryEntry {
   bonus: number;
   equity: number;
   totalComp: number;
+  currency?: string;
   yoe: number;
   date: string;
 }

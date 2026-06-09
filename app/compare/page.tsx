@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import { compareSalaries, getCompanies } from '@/lib/api';
 import type { Company } from '@/lib/mockData';
 import type { ComparisonEntry } from '@/types';
+import { convertCurrency, formatAnnualCurrency } from '@/lib/currency';
 
 interface CompareSlot {
   companySlug: string;
@@ -91,24 +92,9 @@ function CompareContent() {
     setComparisonData([]);
   };
 
-  const toUsdRates: Record<string, number> = {
-    USD: 1,
-    INR: 1 / 83,
-    GBP: 1.27,
-    EUR: 1.08,
-    CAD: 0.74,
-    SGD: 0.74,
-    AUD: 0.66,
-    AED: 0.27,
-    JPY: 0.0067,
-    BRL: 0.2,
-  };
-
   const convertAmount = (amount: number, sourceCurrency: string) => {
-    const usd = amount * (toUsdRates[sourceCurrency] ?? 1);
-    return displayCurrency === 'INR' ? usd * 83 : usd;
+    return convertCurrency(amount, sourceCurrency, displayCurrency)
   };
-
   // Resolve slot data (base, bonus, equity, TC, YOE, equivalent, location)
   const resolvedSlotsData = useMemo(() => {
     return slots.map((slot: any, index: any) => {
@@ -199,8 +185,7 @@ function CompareContent() {
 
   const formatCurrency = (amount: number) => {
     if (!amount || amount === 0) return 'N/A';
-    if (displayCurrency === 'INR') return `₹${(amount / 10000000).toFixed(2)}L`;
-    return `$${Math.round(amount / 1000)}k`;
+    return formatAnnualCurrency(amount, displayCurrency);
   };
 
   // Radar SVG Math Helper
@@ -243,7 +228,7 @@ function CompareContent() {
           Platform Compare
         </h1>
         <p className="text-sm text-text-muted mt-2 max-w-2xl">
-          Side-by-side compensation comparison of roles, levels, and companies. Find the strongest components in each offer.
+          Side-by-side annual compensation comparison of roles, levels, and companies. Find the strongest components in each offer.
         </p>
       </div>
 
@@ -268,7 +253,7 @@ function CompareContent() {
                       className="absolute top-2 right-2 text-text-muted hover:text-red-400 text-xs font-semibold p-1"
                       title="Remove comparison"
                     >
-                      ✕
+                      Ã¢Å“â€¢
                     </button>
                   )}
                   
@@ -381,7 +366,7 @@ function CompareContent() {
           <div className="flex flex-col gap-3 rounded-2xl border border-border-dark bg-card p-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="text-xs font-bold uppercase tracking-wider text-text-muted">Display Currency</p>
-              <p className="mt-1 text-xs text-text-muted">Switch comparison values between converted USD and INR.</p>
+              <p className="mt-1 text-xs text-text-muted">Switch annual compensation values between converted USD and INR.</p>
             </div>
             <div className="flex w-full items-center gap-2 rounded-xl border border-border-dark bg-[#0e0e15]/70 p-1 sm:w-56">
               {(['USD', 'INR'] as const).map((currency) => (
@@ -418,7 +403,7 @@ function CompareContent() {
                         </span>
                         <span className="text-text-primary text-sm font-black tracking-tight">{d.companyName}</span>
                         <span className="text-[10px] text-text-muted normal-case font-medium">
-                          {d.role} • <span className="font-mono bg-border-dark px-1 py-0.5 rounded text-text-primary font-bold">{d.level}</span>
+                          {d.role} Ã¢â‚¬Â¢ <span className="font-mono bg-border-dark px-1 py-0.5 rounded text-text-primary font-bold">{d.level}</span>
                         </span>
                         <span className="text-[10px] text-text-muted normal-case">
                           Source: {d.sourceCurrency}
@@ -429,10 +414,10 @@ function CompareContent() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border-dark/45 text-sm">
-                {/* Total Comp Row (Highlighted Larger Font) */}
+                {/* Annual Total Comp Row (Highlighted Larger Font) */}
                 <tr className="bg-[#181825]/20 font-bold border-y border-border-dark/50">
                   <td className="py-5 px-6 font-extrabold text-text-primary uppercase tracking-wider text-xs">
-                    Total Comp
+                    Annual Total Comp
                   </td>
                   {resolvedSlotsData.map((d: any, index: any) => (
                     <td
@@ -447,9 +432,9 @@ function CompareContent() {
                   ))}
                 </tr>
 
-                {/* Base Salary Row */}
+                {/* Annual Base Salary Row */}
                 <tr>
-                  <td className="py-4 px-6 text-text-muted font-semibold">Base Salary</td>
+                  <td className="py-4 px-6 text-text-muted font-semibold">Annual Base Salary</td>
                   {resolvedSlotsData.map((d: any, index: any) => (
                     <td
                       key={index}

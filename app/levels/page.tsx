@@ -3,6 +3,7 @@
 import React, { useState, useMemo } from 'react';
 import { mockCompanies, mockLevelsEquivalency, LevelEquivalency, Company } from '@/lib/mockData';
 import LevelBadge from '@/components/LevelBadge';
+import { formatConvertedAnnualCurrency } from '@/lib/currency';
 
 export default function LevelsPage() {
   const [selectedCompanySlug, setSelectedCompanySlug] = useState('google');
@@ -15,8 +16,7 @@ export default function LevelsPage() {
 
   const formatCurrency = (val: number) => {
     if (!val) return 'N/A'
-    if (displayCurrency === 'INR') return `₹${((val * 83) / 10000000).toFixed(2)}L`
-    return `$${Math.round(val / 1000)}k`
+    return formatConvertedAnnualCurrency(val, 'USD', displayCurrency)
   };
 
   return (
@@ -30,7 +30,7 @@ export default function LevelsPage() {
           Decode the Level Ladder
         </h1>
         <p className="text-sm text-text-muted max-w-xl">
-          Understand titles across big tech. Map leveling hierarchies and standard compensation marks from Junior to Principal grades.
+          Understand titles across big tech. Map leveling hierarchies and annual compensation marks from Junior to Principal grades.
         </p>
         <div className="mt-4 flex w-full max-w-[220px] items-center gap-2 rounded-xl border border-border-dark bg-[#0e0e15]/70 p-1">
           {(['USD', 'INR'] as const).map((currency) => (
@@ -117,7 +117,7 @@ export default function LevelsPage() {
 
                 {/* Median TC block */}
                 <div className="lg:text-right shrink-0 border-t lg:border-t-0 pt-3 lg:pt-0 border-border-dark lg:w-32">
-                  <span className="text-[10px] text-text-muted block font-semibold uppercase tracking-wider">Median TC</span>
+                  <span className="text-[10px] text-text-muted block font-semibold uppercase tracking-wider">Annual Median TC</span>
                   <span className="text-sm font-black text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">
                     {formatCurrency(eq.medianTC)}
                   </span>
@@ -178,7 +178,7 @@ export default function LevelsPage() {
                   <th className="py-4 px-4 w-1/4">Normal Title</th>
                   <th className="py-4 px-4">Level Tier</th>
                   <th className="py-4 px-4 text-center">Typical YOE</th>
-                  <th className="py-4 px-4 text-right">Median TC</th>
+                  <th className="py-4 px-4 text-right">Annual Median TC</th>
                   <th className="py-4 px-6 text-center">Big Tech Equivalents</th>
                 </tr>
               </thead>
@@ -195,7 +195,7 @@ export default function LevelsPage() {
                         selectedCompanySlug !== 'apple' ? `Apple ${eqBand.apple}` : null,
                       ]
                         .filter(Boolean)
-                        .join(' • ')
+                        .join(' Ã¢â‚¬Â¢ ')
                     : '';
 
                   return (

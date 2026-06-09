@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { formatConvertedAnnualCurrency } from '@/lib/currency'
 
 type Company = {
   id: string
@@ -65,7 +66,7 @@ function formatTC(value: number, currency: string): string {
   if (!value) return 'N/A'
   if (currency === 'INR' || value < 10000) {
     const lakhs = value / 100000
-    return `₹${lakhs.toFixed(0)}L`
+    return `Ã¢â€šÂ¹${lakhs.toFixed(0)}L`
   }
   const k = value / 1000
   return `$${k.toFixed(0)}k`
@@ -80,25 +81,9 @@ function currencyForCompany(company: Company): string {
   return company.dominantCurrency || (['Flipkart', 'Infosys', 'TCS', 'Swiggy', 'Razorpay', 'Zepto'].includes(company.name) ? 'INR' : 'USD')
 }
 
-const toUsdRates: Record<string, number> = {
-  USD: 1,
-  INR: 1 / 83,
-  GBP: 1.27,
-  EUR: 1.08,
-  CAD: 0.74,
-  SGD: 0.74,
-  AUD: 0.66,
-  AED: 0.27,
-  JPY: 0.0067,
-  BRL: 0.2,
-}
-
 function formatDisplayTC(value: number, sourceCurrency: string, displayCurrency: 'USD' | 'INR'): string {
   if (!value) return 'N/A'
-  const usd = value * (toUsdRates[sourceCurrency] ?? 1)
-  const converted = displayCurrency === 'INR' ? usd * 83 : usd
-  if (displayCurrency === 'INR') return `₹${(converted / 10000000).toFixed(2)}L`
-  return `$${Math.round(converted / 1000)}k`
+  return formatConvertedAnnualCurrency(value, sourceCurrency, displayCurrency)
 }
 
 function SkeletonCard() {
@@ -215,7 +200,7 @@ export default function CompaniesPage() {
             { label: 'Total Companies', value: stats?.totalCompanies.toLocaleString() ?? '0' },
             { label: 'Total Salary Reports', value: stats?.totalSalaries.toLocaleString() ?? '0' },
             { label: 'Most Reported Company', value: stats?.mostSearchedCompany ?? 'N/A' },
-            { label: 'Median SWE TC', value: formatDisplayTC(stats?.medianSWETC ?? 0, 'USD', displayCurrency) },
+            { label: 'Annual Median SWE TC', value: formatDisplayTC(stats?.medianSWETC ?? 0, 'USD', displayCurrency) },
           ].map((item: any) => (
             <div
               key={item.label}
@@ -255,7 +240,7 @@ export default function CompaniesPage() {
               className="w-full rounded-xl border border-[rgba(30,30,46,1)] bg-[rgba(17,17,24,0.8)] px-4 py-3 text-sm text-white outline-none focus:border-[#6366f1] sm:w-56"
             >
               <option value="reports">Most Reports</option>
-              <option value="tc">Highest Median TC</option>
+              <option value="tc">Highest Annual Median TC</option>
               <option value="alpha">Alphabetical</option>
             </select>
           </div>
@@ -306,11 +291,11 @@ export default function CompaniesPage() {
 
                   <div className="grid grid-cols-3 gap-3">
                     <div>
-                      <p className="text-[10px] font-bold uppercase tracking-wider text-[#64748B]">Median TC</p>
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-[#64748B]">Annual Median TC</p>
                       <p className="mt-1 text-sm font-black text-white">{formatDisplayTC(company.medianTC || 0, currency, displayCurrency)}</p>
                     </div>
                     <div>
-                      <p className="text-[10px] font-bold uppercase tracking-wider text-[#64748B]">Median Base</p>
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-[#64748B]">Annual Median Base</p>
                       <p className="mt-1 text-sm font-black text-white">{formatDisplayTC(company.medianBase || 0, currency, displayCurrency)}</p>
                     </div>
                     <div>
@@ -323,7 +308,7 @@ export default function CompaniesPage() {
                     onClick={() => router.push(`/company/${company.slug}`)}
                     className="mt-6 w-full rounded-xl border border-[rgba(30,30,46,1)] bg-[#6366f1]/10 px-4 py-3 text-sm font-bold text-white transition hover:border-[#6366f1] hover:bg-[#6366f1]"
                   >
-                    View Details →
+                    View Details Ã¢â€ â€™
                   </button>
                 </article>
               )

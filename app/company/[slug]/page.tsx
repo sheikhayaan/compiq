@@ -9,6 +9,7 @@ import StatCard from '@/components/StatCard';
 import SalaryTable from '@/components/SalaryTable';
 import LevelBadge from '@/components/LevelBadge';
 import TCBreakdown from '@/components/TCBreakdown';
+import { convertCurrency, formatConvertedAnnualCurrency } from '@/lib/currency';
 
 export default function CompanyProfilePage() {
   const params = useParams();
@@ -72,7 +73,7 @@ export default function CompanyProfilePage() {
         <h2 className="text-2xl font-bold text-text-primary">Company Not Found</h2>
         <p className="text-text-muted mt-2">The company profile you are looking for does not exist in our registry.</p>
         <Link href="/companies" className="inline-block mt-6 text-primary hover:underline font-semibold">
-          ← Back to Company Directory
+          â† Back to Company Directory
         </Link>
       </div>
     );
@@ -80,35 +81,14 @@ export default function CompanyProfilePage() {
 
   const dominantCurrency = (company as any).dominantCurrency || companySalaries[0]?.currency || 'USD';
 
-  const toUsdRates: Record<string, number> = {
-    USD: 1,
-    INR: 1 / 83,
-    GBP: 1.27,
-    EUR: 1.08,
-    CAD: 0.74,
-    SGD: 0.74,
-    AUD: 0.66,
-    AED: 0.27,
-    JPY: 0.0067,
-    BRL: 0.2,
-  };
-
   const convertAmount = (amount: number, sourceCurrency: string) => {
-    const usd = amount * (toUsdRates[sourceCurrency] ?? 1);
-    return displayCurrency === 'INR' ? usd * 83 : usd;
+    return convertCurrency(amount, sourceCurrency, displayCurrency);
   };
 
   function formatCurrency(amount: number, currency: string): string {
     if (!amount || amount === 0) return 'N/A'
-    const finalAmount = convertAmount(amount, currency)
-    switch(displayCurrency) {
-      case 'INR':
-        return `₹${(finalAmount/10000000).toFixed(2)}L`
-      default:
-        return `$${Math.round(finalAmount/1000)}k`
-    }
+    return formatConvertedAnnualCurrency(amount, currency, displayCurrency)
   };
-
   const displayedCompBreakdown = {
     base: convertAmount(compBreakdown.base, dominantCurrency),
     bonus: convertAmount(compBreakdown.bonus, dominantCurrency),
@@ -122,7 +102,7 @@ export default function CompanyProfilePage() {
         href="/companies"
         className="text-xs text-text-muted hover:text-text-primary transition-colors flex items-center gap-1.5 mb-6"
       >
-        <span>←</span> Back to Directory
+        <span>â†</span> Back to Directory
       </Link>
 
       {/* Company Header */}
@@ -241,19 +221,19 @@ export default function CompanyProfilePage() {
             <StatCard
               title="Median Total Comp"
               value={formatCurrency(company.medianTC, dominantCurrency)}
-              subtext="Average SWE earnings"
+              subtext="Annual SWE earnings"
               accentColor="indigo"
             />
             <StatCard
               title="Median Base Salary"
               value={formatCurrency(company.medianBase, dominantCurrency)}
-              subtext="Guaranteed base pay"
+              subtext="Annual guaranteed base pay"
               accentColor="cyan"
             />
             <StatCard
               title="Top Level TC"
               value={formatCurrency(company.topLevelTC, dominantCurrency)}
-              subtext="Principal / Partner engineers"
+              subtext="Annual principal / partner TC"
               accentColor="green"
             />
           </div>
@@ -264,7 +244,7 @@ export default function CompanyProfilePage() {
             <div className="lg:col-span-7 bg-card border border-border-dark p-6 rounded-xl">
               <h3 className="font-bold text-text-primary text-base mb-2">Compensation Mix</h3>
               <p className="text-xs text-text-muted mb-6">
-                Average proportion of base pay, cash bonus, and equity stock grants.
+                Average annual proportion of base pay, cash bonus, and equity stock grants.
               </p>
               
               <TCBreakdown
@@ -280,7 +260,7 @@ export default function CompanyProfilePage() {
             <div className="lg:col-span-5 bg-card border border-border-dark p-6 rounded-xl">
               <h3 className="font-bold text-text-primary text-base mb-2">Level Progression Ladder</h3>
               <p className="text-xs text-text-muted mb-6">
-                Median Total Compensation per level code at {company.name}.
+                Annual median total compensation per level code at {company.name}.
               </p>
 
               <div className="flex flex-col gap-3">
@@ -340,7 +320,7 @@ export default function CompanyProfilePage() {
                   <th className="py-4 px-4">Milestone Title</th>
                   <th className="py-4 px-4">Level Tier</th>
                   <th className="py-4 px-4 text-center">Typical YOE</th>
-                  <th className="py-4 px-6 text-right">Median TC</th>
+                  <th className="py-4 px-6 text-right">Annual Median TC</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border-dark/30 text-sm">
