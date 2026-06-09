@@ -199,7 +199,7 @@ function CompareContent() {
 
   const formatCurrency = (amount: number) => {
     if (!amount || amount === 0) return 'N/A';
-    if (displayCurrency === 'INR') return `₹${(amount / 100000).toFixed(1)}L`;
+    if (displayCurrency === 'INR') return `₹${(amount / 10000000).toFixed(2)}L`;
     return `$${Math.round(amount / 1000)}k`;
   };
 
@@ -378,6 +378,29 @@ function CompareContent() {
 
         {/* Right Panel: Comparison Table + SVG Radar */}
         <div className="lg:col-span-8 flex flex-col gap-8">
+          <div className="flex flex-col gap-3 rounded-2xl border border-border-dark bg-card p-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-wider text-text-muted">Display Currency</p>
+              <p className="mt-1 text-xs text-text-muted">Switch comparison values between converted USD and INR.</p>
+            </div>
+            <div className="flex w-full items-center gap-2 rounded-xl border border-border-dark bg-[#0e0e15]/70 p-1 sm:w-56">
+              {(['USD', 'INR'] as const).map((currency) => (
+                <button
+                  key={currency}
+                  type="button"
+                  onClick={() => setDisplayCurrency(currency)}
+                  className={`flex-1 rounded-lg px-3 py-2 text-xs font-bold transition-all ${
+                    displayCurrency === currency
+                      ? 'bg-primary text-white'
+                      : 'text-text-muted hover:text-text-primary'
+                  }`}
+                >
+                  {currency}
+                </button>
+              ))}
+            </div>
+          </div>
+
           {/* Comparison Matrix Table */}
           <div className="w-full overflow-x-auto rounded-2xl border border-border-dark bg-card">
             <table className="w-full text-left border-collapse min-w-[500px]">
@@ -514,7 +537,8 @@ function CompareContent() {
           </div>
 
           {/* Radar Chart Visual */}
-          <div className="bg-card border border-border-dark p-6 rounded-2xl flex flex-col md:flex-row items-center gap-8 justify-between">
+          <div className="relative clear-both w-full overflow-hidden rounded-2xl border border-border-dark bg-card p-6">
+            <div className="grid grid-cols-1 gap-8 md:grid-cols-[minmax(0,1fr)_280px] md:items-center">
             <div className="max-w-sm flex flex-col gap-2">
               <h4 className="font-bold text-text-primary text-base">Platform Vectors</h4>
               <p className="text-xs text-text-muted">
@@ -534,8 +558,8 @@ function CompareContent() {
             </div>
 
             {/* SVG Radar representation */}
-            <div className="relative w-64 h-64 flex items-center justify-center">
-              <svg width="250" height="250" viewBox="0 0 300 300" className="w-full h-full overflow-visible">
+            <div className="relative mx-auto flex h-64 w-64 shrink-0 items-center justify-center overflow-hidden">
+              <svg width="250" height="250" viewBox="0 0 300 300" className="h-full w-full overflow-hidden">
                 {/* Background radar grid circles */}
                 <circle cx="150" cy="150" r="90" fill="none" stroke="#1E1E2E" strokeWidth="1" />
                 <circle cx="150" cy="150" r="60" fill="none" stroke="#1E1E2E" strokeWidth="1" strokeDasharray="3,3" />
@@ -577,6 +601,7 @@ function CompareContent() {
                   );
                 })}
               </svg>
+            </div>
             </div>
           </div>
         </div>

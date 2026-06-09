@@ -13,6 +13,7 @@ type Company = {
   medianTC?: number
   medianBase?: number
   topLevelTC?: number
+  dominantCurrency?: string
   _count?: {
     salaries?: number
   }
@@ -76,7 +77,28 @@ function formatStatTC(value: number): string {
 }
 
 function currencyForCompany(company: Company): string {
-  return ['Flipkart', 'Infosys', 'TCS', 'Swiggy', 'Razorpay', 'Zepto'].includes(company.name) ? 'INR' : 'USD'
+  return company.dominantCurrency || (['Flipkart', 'Infosys', 'TCS', 'Swiggy', 'Razorpay', 'Zepto'].includes(company.name) ? 'INR' : 'USD')
+}
+
+const toUsdRates: Record<string, number> = {
+  USD: 1,
+  INR: 1 / 83,
+  GBP: 1.27,
+  EUR: 1.08,
+  CAD: 0.74,
+  SGD: 0.74,
+  AUD: 0.66,
+  AED: 0.27,
+  JPY: 0.0067,
+  BRL: 0.2,
+}
+
+function formatDisplayTC(value: number, sourceCurrency: string, displayCurrency: 'USD' | 'INR'): string {
+  if (!value) return 'N/A'
+  const usd = value * (toUsdRates[sourceCurrency] ?? 1)
+  const converted = displayCurrency === 'INR' ? usd * 83 : usd
+  if (displayCurrency === 'INR') return `₹${(converted / 10000000).toFixed(2)}L`
+  return `$${Math.round(converted / 1000)}k`
 }
 
 function SkeletonCard() {
@@ -106,6 +128,7 @@ export default function CompaniesPage() {
   const [search, setSearch] = useState('')
   const [category, setCategory] = useState('All')
   const [sortBy, setSortBy] = useState<SortBy>('reports')
+  const [displayCurrency, setDisplayCurrency] = useState<'USD' | 'INR'>('USD')
 
   useEffect(() => {
     Promise.all([
@@ -192,7 +215,7 @@ export default function CompaniesPage() {
             { label: 'Total Companies', value: stats?.totalCompanies.toLocaleString() ?? '0' },
             { label: 'Total Salary Reports', value: stats?.totalSalaries.toLocaleString() ?? '0' },
             { label: 'Most Reported Company', value: stats?.mostSearchedCompany ?? 'N/A' },
-            { label: 'Median SWE TC', value: formatStatTC(stats?.medianSWETC ?? 0) },
+            { label: 'Median SWE TC', value: formatDisplayTC(stats?.medianSWETC ?? 0, 'USD', displayCurrency) },
           ].map((item: any) => (
             <div
               key={item.label}
@@ -211,15 +234,31 @@ export default function CompaniesPage() {
             <h2 className="text-xl font-bold text-white">Companies</h2>
             <p className="text-sm text-[#64748B]">{filtered.length} companies found</p>
           </div>
-          <select
-            value={sortBy}
-            onChange={(event) => setSortBy(event.target.value as SortBy)}
-            className="w-full rounded-xl border border-[rgba(30,30,46,1)] bg-[rgba(17,17,24,0.8)] px-4 py-3 text-sm text-white outline-none focus:border-[#6366f1] sm:w-56"
-          >
-            <option value="reports">Most Reports</option>
-            <option value="tc">Highest Median TC</option>
-            <option value="alpha">Alphabetical</option>
-          </select>
+          <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+            <div className="flex items-center gap-2 rounded-xl border border-[rgba(30,30,46,1)] bg-[rgba(17,17,24,0.8)] p-1 sm:w-44">
+              {(['USD', 'INR'] as const).map((currency) => (
+                <button
+                  key={currency}
+                  type="button"
+                  onClick={() => setDisplayCurrency(currency)}
+                  className={`flex-1 rounded-lg px-3 py-2 text-xs font-bold transition ${
+                    displayCurrency === currency ? 'bg-[#6366f1] text-white' : 'text-[#64748B] hover:text-white'
+                  }`}
+                >
+                  {currency}
+                </button>
+              ))}
+            </div>
+            <select
+              value={sortBy}
+              onChange={(event) => setSortBy(event.target.value as SortBy)}
+              className="w-full rounded-xl border border-[rgba(30,30,46,1)] bg-[rgba(17,17,24,0.8)] px-4 py-3 text-sm text-white outline-none focus:border-[#6366f1] sm:w-56"
+            >
+              <option value="reports">Most Reports</option>
+              <option value="tc">Highest Median TC</option>
+              <option value="alpha">Alphabetical</option>
+            </select>
+          </div>
         </div>
 
         {loading ? (
@@ -268,15 +307,15 @@ export default function CompaniesPage() {
                   <div className="grid grid-cols-3 gap-3">
                     <div>
                       <p className="text-[10px] font-bold uppercase tracking-wider text-[#64748B]">Median TC</p>
-                      <p className="mt-1 text-sm font-black text-white">{formatTC(company.medianTC || 0, currency)}</p>
+                      <p className="mt-1 text-sm font-black text-white">{formatDisplayTC(company.medianTC || 0, currency, displayCurrency)}</p>
                     </div>
                     <div>
                       <p className="text-[10px] font-bold uppercase tracking-wider text-[#64748B]">Median Base</p>
-                      <p className="mt-1 text-sm font-black text-white">{formatTC(company.medianBase || 0, currency)}</p>
+                      <p className="mt-1 text-sm font-black text-white">{formatDisplayTC(company.medianBase || 0, currency, displayCurrency)}</p>
                     </div>
                     <div>
                       <p className="text-[10px] font-bold uppercase tracking-wider text-[#64748B]">Top Level</p>
-                      <p className="mt-1 text-sm font-black text-white">{formatTC(company.topLevelTC || company.medianTC || 0, currency)}</p>
+                      <p className="mt-1 text-sm font-black text-white">{formatDisplayTC(company.topLevelTC || company.medianTC || 0, currency, displayCurrency)}</p>
                     </div>
                   </div>
 

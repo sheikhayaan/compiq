@@ -26,9 +26,10 @@ function SalariesContent() {
   const [totalRecords, setTotalRecords] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [displayCurrency, setDisplayCurrency] = useState<'USD' | 'INR'>('USD');
 
   const locationsList = useMemo(() => {
-    return Array.from(new Set(salaries.map((s: any) => s.location))).sort();
+    return Array.from(new Set(salaries.flatMap((s: any) => [s.country, s.location]))).filter(Boolean).sort();
   }, [salaries]);
 
   // Filter State
@@ -70,10 +71,9 @@ function SalariesContent() {
           role: filters.roles[0],
           level: filters.levelTier === 'All' ? undefined : filters.levelTier,
           maxYOE: filters.yoe,
-          maxTC: filters.totalComp,
           search: search || undefined,
           page: 1,
-          limit: 200,
+          limit: 500,
         }),
         getCompanies(),
       ]);
@@ -100,7 +100,11 @@ function SalariesContent() {
     return salaries.filter((s: any) => {
       if (filters.companies.length > 1 && !filters.companies.includes(s.company)) return false;
       if (filters.roles.length > 1 && !filters.roles.includes(s.role)) return false;
-      if (filters.locations.length > 0 && !filters.locations.includes(s.location)) return false;
+      if (
+        filters.locations.length > 0 &&
+        !filters.locations.includes(s.location) &&
+        !filters.locations.includes(s.country)
+      ) return false;
       return true;
     });
   }, [filters, salaries]);
@@ -174,14 +178,30 @@ function SalariesContent() {
         <div className="lg:col-span-3 flex flex-col gap-6">
           {activeTab === 'salaries' ? (
             <div>
-              <div className="flex justify-between items-center mb-4">
+              <div className="flex flex-col gap-3 mb-4 sm:flex-row sm:items-center sm:justify-between">
                 <span className="text-xs text-text-muted font-medium">
                   Showing <span className="text-text-primary font-bold">{filteredSalaries.length}</span> of <span className="text-text-primary font-bold">{totalRecords}</span> individual records
                 </span>
+                <div className="flex w-full items-center gap-2 rounded-xl border border-border-dark bg-[#0e0e15]/70 p-1 sm:w-48">
+                  {(['USD', 'INR'] as const).map((currency) => (
+                    <button
+                      key={currency}
+                      type="button"
+                      onClick={() => setDisplayCurrency(currency)}
+                      className={`flex-1 rounded-lg px-3 py-2 text-xs font-bold transition-all ${
+                        displayCurrency === currency
+                          ? 'bg-primary text-white'
+                          : 'text-text-muted hover:text-text-primary'
+                      }`}
+                    >
+                      {currency}
+                    </button>
+                  ))}
+                </div>
               </div>
               {loading && <p className="py-10 text-center text-text-muted text-sm">Loading salaries...</p>}
               {error && <p className="py-10 text-center text-red-400 text-sm">{error}</p>}
-              {!loading && !error && <SalaryTable data={filteredSalaries} />}
+              {!loading && !error && <SalaryTable data={filteredSalaries} displayCurrency={displayCurrency} />}
             </div>
           ) : (
             <div>

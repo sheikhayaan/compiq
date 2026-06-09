@@ -7,12 +7,13 @@ import LevelBadge from './LevelBadge';
 
 interface SalaryTableProps {
   data: SalaryEntry[];
+  displayCurrency?: 'USD' | 'INR';
 }
 
 type SortField = 'company' | 'role' | 'level' | 'location' | 'base' | 'bonus' | 'equity' | 'totalComp' | 'yoe' | 'date';
 type SortDirection = 'asc' | 'desc';
 
-export default function SalaryTable({ data }: SalaryTableProps) {
+export default function SalaryTable({ data, displayCurrency }: SalaryTableProps) {
   const [sortField, setSortField] = useState<SortField>('date');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
   const [currentPage, setCurrentPage] = useState(1);
@@ -64,29 +65,54 @@ export default function SalaryTable({ data }: SalaryTableProps) {
     return sortedData.slice(startIdx, startIdx + itemsPerPage);
   }, [sortedData, currentPage]);
 
+  const toUsdRates: Record<string, number> = {
+    USD: 1,
+    INR: 1 / 83,
+    GBP: 1.27,
+    EUR: 1.08,
+    CAD: 0.74,
+    SGD: 0.74,
+    AUD: 0.66,
+    AED: 0.27,
+    JPY: 0.0067,
+    BRL: 0.2,
+  };
+
+  const convertAmount = (amount: number, sourceCurrency: string) => {
+    if (!displayCurrency) return amount;
+    const usd = amount * (toUsdRates[sourceCurrency] ?? 1);
+    return displayCurrency === 'INR' ? usd * 83 : usd;
+  };
+
+  const formatInr = (amount: number) => {
+    return `₹${(amount / 10000000).toFixed(2)}L`
+  };
+
   const formatCurrency = (amount: number, currency: string = 'USD'): string => {
     if (!amount || amount === 0) return 'N/A'
-    switch(currency) {
+    const finalAmount = convertAmount(amount, currency)
+    const finalCurrency = displayCurrency ?? currency
+    switch(finalCurrency) {
       case 'INR':
-        return `₹${(amount/100000).toFixed(1)}L`
+        return formatInr(finalAmount)
       case 'GBP':
-        return `£${Math.round(amount/1000)}k`
+        return `£${Math.round(finalAmount/1000)}k`
       case 'EUR':
-        return `€${Math.round(amount/1000)}k`
+        return `€${Math.round(finalAmount/1000)}k`
       case 'CAD':
-        return `CA$${Math.round(amount/1000)}k`
+        return `CA$${Math.round(finalAmount/1000)}k`
       case 'SGD':
-        return `S$${Math.round(amount/1000)}k`
+        return `S$${Math.round(finalAmount/1000)}k`
       case 'AUD':
-        return `A$${Math.round(amount/1000)}k`
+        return `A$${Math.round(finalAmount/1000)}k`
       case 'AED':
-        return `AED ${Math.round(amount/1000)}k`
+        return `AED ${Math.round(finalAmount/1000)}k`
       case 'JPY':
-        return `¥${(amount/1000000).toFixed(1)}M`
+        return `¥${(finalAmount/1000000).toFixed(1)}M`
       case 'BRL':
-        return `R$${Math.round(amount/1000)}k`
+        return `R$${Math.round(finalAmount/1000)}k`
       default:
-        return `$${Math.round(amount/1000)}k`
+        return `$${Math.round(finalAmount/1000)}k`
     }
   };
 

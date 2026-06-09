@@ -26,7 +26,7 @@ export default function TCBreakdown({
     if (!amount || amount === 0) return 'N/A'
     switch(currency) {
       case 'INR':
-        return `₹${(amount/100000).toFixed(1)}L`
+        return `₹${(amount/10000000).toFixed(2)}L`
       case 'GBP':
         return `£${Math.round(amount/1000)}k`
       case 'EUR':

@@ -6,6 +6,7 @@ import LevelBadge from '@/components/LevelBadge';
 
 export default function LevelsPage() {
   const [selectedCompanySlug, setSelectedCompanySlug] = useState('google');
+  const [displayCurrency, setDisplayCurrency] = useState<'USD' | 'INR'>('USD');
 
   // Selected Company
   const company = useMemo(() => {
@@ -13,11 +14,9 @@ export default function LevelsPage() {
   }, [selectedCompanySlug]);
 
   const formatCurrency = (val: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      maximumFractionDigits: 0,
-    }).format(val);
+    if (!val) return 'N/A'
+    if (displayCurrency === 'INR') return `₹${((val * 83) / 10000000).toFixed(2)}L`
+    return `$${Math.round(val / 1000)}k`
   };
 
   return (
@@ -33,6 +32,22 @@ export default function LevelsPage() {
         <p className="text-sm text-text-muted max-w-xl">
           Understand titles across big tech. Map leveling hierarchies and standard compensation marks from Junior to Principal grades.
         </p>
+        <div className="mt-4 flex w-full max-w-[220px] items-center gap-2 rounded-xl border border-border-dark bg-[#0e0e15]/70 p-1">
+          {(['USD', 'INR'] as const).map((currency) => (
+            <button
+              key={currency}
+              type="button"
+              onClick={() => setDisplayCurrency(currency)}
+              className={`flex-1 rounded-lg px-3 py-2 text-xs font-bold transition-all ${
+                displayCurrency === currency
+                  ? 'bg-primary text-white'
+                  : 'text-text-muted hover:text-text-primary'
+              }`}
+            >
+              {currency}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Cross-Company Equivalency Visual Bands */}

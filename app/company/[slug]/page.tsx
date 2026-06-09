@@ -17,6 +17,7 @@ export default function CompanyProfilePage() {
   const [company, setCompany] = useState<Company | null>(null);
   const [companySalaries, setCompanySalaries] = useState<SalaryEntry[]>([]);
   const [loading, setLoading] = useState(true);
+  const [displayCurrency, setDisplayCurrency] = useState<'USD' | 'INR'>('USD');
 
   useEffect(() => {
     let ignore = false;
@@ -79,30 +80,39 @@ export default function CompanyProfilePage() {
 
   const dominantCurrency = (company as any).dominantCurrency || companySalaries[0]?.currency || 'USD';
 
+  const toUsdRates: Record<string, number> = {
+    USD: 1,
+    INR: 1 / 83,
+    GBP: 1.27,
+    EUR: 1.08,
+    CAD: 0.74,
+    SGD: 0.74,
+    AUD: 0.66,
+    AED: 0.27,
+    JPY: 0.0067,
+    BRL: 0.2,
+  };
+
+  const convertAmount = (amount: number, sourceCurrency: string) => {
+    const usd = amount * (toUsdRates[sourceCurrency] ?? 1);
+    return displayCurrency === 'INR' ? usd * 83 : usd;
+  };
+
   function formatCurrency(amount: number, currency: string): string {
     if (!amount || amount === 0) return 'N/A'
-    switch(currency) {
+    const finalAmount = convertAmount(amount, currency)
+    switch(displayCurrency) {
       case 'INR':
-        return `₹${(amount/100000).toFixed(1)}L`
-      case 'GBP':
-        return `£${Math.round(amount/1000)}k`
-      case 'EUR':
-        return `€${Math.round(amount/1000)}k`
-      case 'CAD':
-        return `CA$${Math.round(amount/1000)}k`
-      case 'SGD':
-        return `S$${Math.round(amount/1000)}k`
-      case 'AUD':
-        return `A$${Math.round(amount/1000)}k`
-      case 'AED':
-        return `AED ${Math.round(amount/1000)}k`
-      case 'JPY':
-        return `¥${(amount/1000000).toFixed(1)}M`
-      case 'BRL':
-        return `R$${Math.round(amount/1000)}k`
+        return `₹${(finalAmount/10000000).toFixed(2)}L`
       default:
-        return `$${Math.round(amount/1000)}k`
+        return `$${Math.round(finalAmount/1000)}k`
     }
+  };
+
+  const displayedCompBreakdown = {
+    base: convertAmount(compBreakdown.base, dominantCurrency),
+    bonus: convertAmount(compBreakdown.bonus, dominantCurrency),
+    equity: convertAmount(compBreakdown.equity, dominantCurrency),
   };
 
   return (
@@ -163,7 +173,8 @@ export default function CompanyProfilePage() {
       </div>
 
       {/* Tab bar */}
-      <div className="flex border-b border-border-dark mb-8 gap-6 text-sm">
+      <div className="mb-8 flex flex-col gap-4 border-b border-border-dark pb-4 md:flex-row md:items-center md:justify-between">
+        <div className="flex gap-6 text-sm">
         <button
           onClick={() => setActiveTab('overview')}
           className={`pb-3 font-semibold transition-all relative ${
@@ -203,6 +214,23 @@ export default function CompanyProfilePage() {
             <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-full" />
           )}
         </button>
+        </div>
+        <div className="flex w-full items-center gap-2 rounded-xl border border-border-dark bg-[#0e0e15]/70 p-1 md:w-48">
+          {(['USD', 'INR'] as const).map((currency) => (
+            <button
+              key={currency}
+              type="button"
+              onClick={() => setDisplayCurrency(currency)}
+              className={`flex-1 rounded-lg px-3 py-2 text-xs font-bold transition-all ${
+                displayCurrency === currency
+                  ? 'bg-primary text-white'
+                  : 'text-text-muted hover:text-text-primary'
+              }`}
+            >
+              {currency}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Tab Content */}
@@ -240,10 +268,10 @@ export default function CompanyProfilePage() {
               </p>
               
               <TCBreakdown
-                base={compBreakdown.base}
-                bonus={compBreakdown.bonus}
-                equity={compBreakdown.equity}
-                currency={dominantCurrency}
+                base={displayedCompBreakdown.base}
+                bonus={displayedCompBreakdown.bonus}
+                equity={displayedCompBreakdown.equity}
+                currency={displayCurrency}
                 showDetails={true}
               />
             </div>
@@ -291,7 +319,7 @@ export default function CompanyProfilePage() {
               Displaying all verified entries reported for <span className="text-text-primary font-bold">{company.name}</span>
             </span>
           </div>
-          <SalaryTable data={companySalaries} />
+          <SalaryTable data={companySalaries} displayCurrency={displayCurrency} />
         </div>
       )}
 
