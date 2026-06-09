@@ -235,7 +235,7 @@ function buildSalaryPlans() {
     }
   }
 
-  const targetCount = 315
+  const targetCount = 360
   let index = 0
   while (plans.length < targetCount) {
     const company = companies[index % companies.length]
@@ -300,6 +300,25 @@ async function main() {
     const bonus = rangeValue(band.bonus, seed + 17)
     const equity = rangeValue(band.equity, seed + 23)
     const totalComp = baseSalary + bonus + equity
+    const currency = country.currency
+
+    const unrealistic =
+      (currency === 'USD' && totalComp > 800000) ||
+      (currency === 'INR' && totalComp > 20000000) ||
+      (currency === 'GBP' && totalComp > 400000) ||
+      (currency === 'CAD' && totalComp > 500000) ||
+      (currency === 'EUR' && totalComp > 400000) ||
+      (currency === 'SGD' && totalComp > 500000) ||
+      (currency === 'AUD' && totalComp > 500000) ||
+      (currency === 'AED' && totalComp > 700000) ||
+      (currency === 'JPY' && totalComp > 30000000) ||
+      (currency === 'BRL' && totalComp > 600000)
+
+    // Skip unrealistic entries
+    if (unrealistic) {
+      seed += 1
+      continue
+    }
 
     await prisma.salary.create({
       data: {
@@ -315,7 +334,7 @@ async function main() {
         equity,
         totalComp,
         yearsExp: rangeValue(yoeRanges[normalizedLevel], seed + 37),
-        currency: country.currency,
+        currency,
         verified: true,
         createdAt: createdWithinSixMonths(seed + 41),
       },
