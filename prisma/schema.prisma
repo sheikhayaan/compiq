@@ -1,0 +1,104 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id            String      @id @default(cuid())
+  name          String?
+  email         String      @unique
+  emailVerified DateTime?
+  image         String?
+  accounts      Account[]
+  sessions      Session[]
+  salaries      Salary[]
+  savedColleges SavedItem[]
+  createdAt     DateTime    @default(now())
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Company {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  slug      String   @unique
+  aliases   String[]
+  industry  String?
+  logo      String?
+  salaries  Salary[]
+  createdAt DateTime @default(now())
+}
+
+model Salary {
+  id              String   @id @default(cuid())
+  company         Company  @relation(fields: [companyId], references: [id])
+  companyId       String
+  userId          String?
+  user            User?    @relation(fields: [userId], references: [id])
+  role            String
+  level           String
+  levelOrder      Int
+  normalizedLevel String
+  location        String
+  country         String
+  baseSalary      Float
+  bonus           Float    @default(0)
+  equity          Float    @default(0)
+  totalComp       Float
+  yearsExp        Int?
+  currency        String   @default("USD")
+  verified        Boolean  @default(false)
+  flagged         Boolean  @default(false)
+  createdAt       DateTime @default(now())
+
+  @@index([companyId])
+  @@index([level])
+  @@index([role])
+  @@index([country])
+}
+
+model LevelMap {
+  id              String @id @default(cuid())
+  company         String
+  rawLevel        String
+  normalizedLevel String
+  levelOrder      Int
+
+  @@unique([company, rawLevel])
+}
+
+model SavedItem {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  type      String
+  refId     String
+  createdAt DateTime @default(now())
+}
