@@ -72,8 +72,7 @@ export default function CompanyProfilePage() {
       <div className="container mx-auto px-4 py-20 text-center">
         <h2 className="text-2xl font-bold text-text-primary">Company Not Found</h2>
         <p className="text-text-muted mt-2">The company profile you are looking for does not exist in our registry.</p>
-        <Link href="/companies" className="inline-block mt-6 text-primary hover:underline font-semibold">
-          â† Back to Company Directory
+        <Link href="/companies" className="inline-block mt-6 text-primary hover:underline font-semibold">Back to Company Directory
         </Link>
       </div>
     );
@@ -102,7 +101,7 @@ export default function CompanyProfilePage() {
         href="/companies"
         className="text-xs text-text-muted hover:text-text-primary transition-colors flex items-center gap-1.5 mb-6"
       >
-        <span>â†</span> Back to Directory
+        <span>&lt;-</span> Back to Directory
       </Link>
 
       {/* Company Header */}

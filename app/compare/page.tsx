@@ -253,7 +253,7 @@ function CompareContent() {
                       className="absolute top-2 right-2 text-text-muted hover:text-red-400 text-xs font-semibold p-1"
                       title="Remove comparison"
                     >
-                      Ã¢Å“â€¢
+                      x
                     </button>
                   )}
                   
@@ -403,7 +403,7 @@ function CompareContent() {
                         </span>
                         <span className="text-text-primary text-sm font-black tracking-tight">{d.companyName}</span>
                         <span className="text-[10px] text-text-muted normal-case font-medium">
-                          {d.role} Ã¢â‚¬Â¢ <span className="font-mono bg-border-dark px-1 py-0.5 rounded text-text-primary font-bold">{d.level}</span>
+                          {d.role} / <span className="font-mono bg-border-dark px-1 py-0.5 rounded text-text-primary font-bold">{d.level}</span>
                         </span>
                         <span className="text-[10px] text-text-muted normal-case">
                           Source: {d.sourceCurrency}

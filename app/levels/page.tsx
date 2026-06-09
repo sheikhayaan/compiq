@@ -1,22 +1,53 @@
 "use client";
 
-import React, { useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { mockCompanies, mockLevelsEquivalency, LevelEquivalency, Company } from '@/lib/mockData';
 import LevelBadge from '@/components/LevelBadge';
 import { formatConvertedAnnualCurrency } from '@/lib/currency';
+import { getCompanies } from '@/lib/api';
 
 export default function LevelsPage() {
   const [selectedCompanySlug, setSelectedCompanySlug] = useState('google');
   const [displayCurrency, setDisplayCurrency] = useState<'USD' | 'INR'>('USD');
+  const [market, setMarket] = useState<'all' | 'india' | 'global'>('all');
+  const [companies, setCompanies] = useState<Company[]>(mockCompanies);
+
+  useEffect(() => {
+    let ignore = false;
+    async function loadCompanies() {
+      const result = await getCompanies();
+      if (!ignore && result?.length) setCompanies(result as Company[]);
+    }
+    loadCompanies();
+    return () => {
+      ignore = true;
+    };
+  }, []);
 
   // Selected Company
   const company = useMemo(() => {
-    return mockCompanies.find((c) => c.slug === selectedCompanySlug) || mockCompanies[0];
-  }, [selectedCompanySlug]);
+    return companies.find((c) => c.slug === selectedCompanySlug) || companies[0] || mockCompanies[0];
+  }, [companies, selectedCompanySlug]);
+
+  const companyCurrency = company.dominantCurrency || 'USD';
+  const companyMarket = companyCurrency === 'INR' ? 'India local market' : 'Global / United States market';
+
+  const visibleCompanies = useMemo(() => {
+    return companies.filter((c: any) => {
+      if (market === 'india') return c.dominantCurrency === 'INR';
+      if (market === 'global') return c.dominantCurrency !== 'INR';
+      return true;
+    });
+  }, [companies, market]);
 
   const formatCurrency = (val: number) => {
     if (!val) return 'N/A'
     return formatConvertedAnnualCurrency(val, 'USD', displayCurrency)
+  };
+
+  const formatCompanyCurrency = (val: number) => {
+    if (!val) return 'N/A'
+    return formatConvertedAnnualCurrency(val, companyCurrency, displayCurrency)
   };
 
   return (
@@ -30,7 +61,7 @@ export default function LevelsPage() {
           Decode the Level Ladder
         </h1>
         <p className="text-sm text-text-muted max-w-xl">
-          Understand titles across big tech. Map leveling hierarchies and annual compensation marks from Junior to Principal grades.
+          Understand titles across companies. Global benchmark bands use US-market compensation; company tables use that company's dominant market and currency.
         </p>
         <div className="mt-4 flex w-full max-w-[220px] items-center gap-2 rounded-xl border border-border-dark bg-[#0e0e15]/70 p-1">
           {(['USD', 'INR'] as const).map((currency) => (
@@ -52,9 +83,14 @@ export default function LevelsPage() {
 
       {/* Cross-Company Equivalency Visual Bands */}
       <div className="mb-14">
-        <h3 className="font-bold text-text-primary text-base mb-5">
-          Equivalency Calibration bands
-        </h3>
+        <div className="mb-5">
+          <h3 className="font-bold text-text-primary text-base">
+            Equivalency Calibration Bands
+          </h3>
+          <p className="mt-1 text-xs text-text-muted">
+            Global benchmark, primarily outside India / US-market compensation. Use the company table below for India-local levels.
+          </p>
+        </div>
         
         <div className="flex flex-col gap-4">
           {mockLevelsEquivalency.map((eq: any) => {
@@ -118,6 +154,7 @@ export default function LevelsPage() {
                 {/* Median TC block */}
                 <div className="lg:text-right shrink-0 border-t lg:border-t-0 pt-3 lg:pt-0 border-border-dark lg:w-32">
                   <span className="text-[10px] text-text-muted block font-semibold uppercase tracking-wider">Annual Median TC</span>
+                  <span className="text-[10px] text-text-muted block">Global / US market</span>
                   <span className="text-sm font-black text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">
                     {formatCurrency(eq.medianTC)}
                   </span>
@@ -131,13 +168,43 @@ export default function LevelsPage() {
       {/* Level progression matrix section */}
       <div>
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-          <h3 className="font-bold text-text-primary text-base">
-            Detailed Level Mapping
-          </h3>
+          <div>
+            <h3 className="font-bold text-text-primary text-base">
+              Company Level Mapping
+            </h3>
+            <p className="mt-1 text-xs text-text-muted">
+              Select India to view India-local company levels and annual compensation.
+            </p>
+          </div>
           
+          <div className="flex flex-col gap-2 md:items-end">
+          <div className="flex gap-1.5 flex-wrap bg-[#111118] border border-border-dark p-1 rounded-xl">
+            {(['all', 'india', 'global'] as const).map((item) => (
+              <button
+                key={item}
+                onClick={() => {
+                  setMarket(item);
+                  const nextCompany = companies.find((c: any) => {
+                    if (item === 'india') return c.dominantCurrency === 'INR';
+                    if (item === 'global') return c.dominantCurrency !== 'INR';
+                    return true;
+                  });
+                  if (nextCompany) setSelectedCompanySlug(nextCompany.slug);
+                }}
+                className={`text-xs font-semibold py-2 px-4 rounded-lg transition-all cursor-pointer ${
+                  market === item
+                    ? 'bg-secondary text-[#041014] shadow'
+                    : 'text-text-muted hover:text-text-primary'
+                }`}
+              >
+                {item === 'all' ? 'All' : item === 'india' ? 'India' : 'Global'}
+              </button>
+            ))}
+          </div>
+
           {/* Company Selector Tab Buttons */}
           <div className="flex gap-1.5 flex-wrap bg-[#111118] border border-border-dark p-1 rounded-xl">
-            {mockCompanies.map((c: any) => (
+            {visibleCompanies.map((c: any) => (
               <button
                 key={c.id}
                 onClick={() => setSelectedCompanySlug(c.slug)}
@@ -150,6 +217,7 @@ export default function LevelsPage() {
                 {c.name}
               </button>
             ))}
+          </div>
           </div>
         </div>
 
@@ -165,7 +233,7 @@ export default function LevelsPage() {
             <div>
               <h4 className="font-bold text-text-primary text-lg">{company.name} Levels Matrix</h4>
               <p className="text-xs text-text-muted">
-                Typical timeline metrics and mapping equivalents for {company.name} candidates.
+                Typical timeline metrics and annual compensation for {company.name}. Market: {companyMarket}. Source currency: {companyCurrency}.
               </p>
             </div>
           </div>
@@ -177,6 +245,7 @@ export default function LevelsPage() {
                   <th className="py-4 px-6 w-1/5">Level Code</th>
                   <th className="py-4 px-4 w-1/4">Normal Title</th>
                   <th className="py-4 px-4">Level Tier</th>
+                  <th className="py-4 px-4">Market / Location</th>
                   <th className="py-4 px-4 text-center">Typical YOE</th>
                   <th className="py-4 px-4 text-right">Annual Median TC</th>
                   <th className="py-4 px-6 text-center">Big Tech Equivalents</th>
@@ -195,7 +264,7 @@ export default function LevelsPage() {
                         selectedCompanySlug !== 'apple' ? `Apple ${eqBand.apple}` : null,
                       ]
                         .filter(Boolean)
-                        .join(' Ã¢â‚¬Â¢ ')
+                        .join(' / ')
                     : '';
 
                   return (
@@ -205,9 +274,10 @@ export default function LevelsPage() {
                       <td className="py-4 px-4">
                         <LevelBadge tier={lvl.tier} />
                       </td>
+                      <td className="py-4 px-4 text-xs text-text-muted font-medium">{companyMarket}</td>
                       <td className="py-4 px-4 text-center text-text-primary">{lvl.typicalYoe}+ yrs</td>
                       <td className="py-4 px-4 text-right font-black text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">
-                        {formatCurrency(lvl.medianTC)}
+                        {formatCompanyCurrency(lvl.medianTC)}
                       </td>
                       <td className="py-4 px-6 text-center text-xs text-text-muted font-medium">
                         {equivs}

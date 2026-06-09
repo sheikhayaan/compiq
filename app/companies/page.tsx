@@ -62,21 +62,6 @@ function reportCount(company: Company): number {
   return company.salariesReported ?? company._count?.salaries ?? 0
 }
 
-function formatTC(value: number, currency: string): string {
-  if (!value) return 'N/A'
-  if (currency === 'INR' || value < 10000) {
-    const lakhs = value / 100000
-    return `Ã¢â€šÂ¹${lakhs.toFixed(0)}L`
-  }
-  const k = value / 1000
-  return `$${k.toFixed(0)}k`
-}
-
-function formatStatTC(value: number): string {
-  if (!value) return 'N/A'
-  return `$${(value / 1000).toFixed(0)}k`
-}
-
 function currencyForCompany(company: Company): string {
   return company.dominantCurrency || (['Flipkart', 'Infosys', 'TCS', 'Swiggy', 'Razorpay', 'Zepto'].includes(company.name) ? 'INR' : 'USD')
 }
@@ -308,7 +293,7 @@ export default function CompaniesPage() {
                     onClick={() => router.push(`/company/${company.slug}`)}
                     className="mt-6 w-full rounded-xl border border-[rgba(30,30,46,1)] bg-[#6366f1]/10 px-4 py-3 text-sm font-bold text-white transition hover:border-[#6366f1] hover:bg-[#6366f1]"
                   >
-                    View Details Ã¢â€ â€™
+                    View Details
                   </button>
                 </article>
               )

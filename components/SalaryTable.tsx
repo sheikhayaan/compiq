@@ -83,13 +83,13 @@ export default function SalaryTable({ data, displayCurrency }: SalaryTableProps)
     if (sortField !== field) {
       return (
         <span className="text-text-muted/30 ml-1 transition-opacity opacity-0 group-hover:opacity-100">
-          Ã¢â€ â€¢
+          -
         </span>
       );
     }
     return (
       <span className="text-primary ml-1 font-bold">
-        {sortDirection === 'asc' ? 'Ã¢â€ â€˜' : 'Ã¢â€ â€œ'}
+        {sortDirection === 'asc' ? '^' : 'v'}
       </span>
     );
   };
@@ -210,10 +210,10 @@ export default function SalaryTable({ data, displayCurrency }: SalaryTableProps)
                     {formatCurrency(row.base, row.currency || 'USD')}
                   </td>
                   <td className="py-4 px-4 text-right text-text-muted font-mono">
-                    {row.bonus > 0 ? formatCurrency(row.bonus, row.currency || 'USD') : 'â€”'}
+                    {row.bonus > 0 ? formatCurrency(row.bonus, row.currency || 'USD') : '-'}
                   </td>
                   <td className="py-4 px-4 text-right text-text-muted font-mono">
-                    {row.equity > 0 ? formatCurrency(row.equity, row.currency || 'USD') : 'â€”'}
+                    {row.equity > 0 ? formatCurrency(row.equity, row.currency || 'USD') : '-'}
                   </td>
                   <td className="py-4 px-6 text-right font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary font-mono text-base">
                     {formatCurrency(row.totalComp, row.currency || 'USD')}
