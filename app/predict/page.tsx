@@ -10,13 +10,24 @@ type Prediction = {
   predicted_total_comp: number;
   confidence_score: number;
   percentile: number;
+  prediction_currency?: DisplayCurrency;
+  market?: string;
 };
 
 const roles = ['Software Engineer', 'Senior SWE', 'Staff SWE', 'Data Scientist', 'PM', 'DevOps', 'Product Manager'];
 const levels = ['Junior', 'Mid', 'Senior', 'Staff', 'Principal'];
 const companies = ['Google', 'Amazon', 'Meta', 'Microsoft', 'Apple', 'Stripe', 'Netflix', 'Uber', 'Infosys', 'TCS', 'Wipro'];
 const indianCompanies = ['Infosys', 'TCS', 'Wipro'];
-const indianLocationTerms = ['india', 'bangalore', 'bengaluru', 'delhi', 'mumbai', 'pune', 'hyderabad', 'chennai', 'gurgaon', 'noida'];
+const indianLocationTerms = [
+  'india', 'bangalore', 'bengaluru', 'delhi', 'new delhi', 'mumbai', 'pune', 'hyderabad', 'chennai',
+  'gurgaon', 'gurugram', 'noida', 'kolkata', 'calcutta', 'ahmedabad', 'surat', 'vadodara', 'baroda',
+  'jaipur', 'lucknow', 'kanpur', 'nagpur', 'indore', 'bhopal', 'coimbatore', 'kochi', 'cochin',
+  'trivandrum', 'thiruvananthapuram', 'visakhapatnam', 'vizag', 'vijayawada', 'bhubaneswar',
+  'chandigarh', 'mohali', 'patna', 'ranchi', 'guwahati', 'mysore', 'mysuru', 'mangalore',
+  'mangaluru', 'nashik', 'thane', 'faridabad', 'ghaziabad', 'kerala', 'karnataka', 'maharashtra',
+  'tamil nadu', 'telangana', 'andhra pradesh', 'uttar pradesh', 'gujarat', 'rajasthan',
+  'madhya pradesh', 'west bengal', 'odisha', 'punjab', 'haryana', 'bihar', 'jharkhand', 'assam', 'goa',
+];
 
 export default function PredictPage() {
   const [role, setRole] = useState('Software Engineer');
@@ -37,7 +48,8 @@ export default function PredictPage() {
   const marketCurrency: DisplayCurrency = isIndianMarket ? 'INR' : 'USD';
   const marketLabel = isIndianMarket ? 'India local market' : 'Global / overseas market';
   const formatPredictionCurrency = (amount: number) => {
-    return formatAnnualCurrency(convertCurrency(amount, 'USD', displayCurrency), displayCurrency);
+    const sourceCurrency = prediction?.prediction_currency || marketCurrency;
+    return formatAnnualCurrency(convertCurrency(amount, sourceCurrency, displayCurrency), displayCurrency);
   };
 
   const chartData = useMemo(() => {
@@ -77,7 +89,7 @@ export default function PredictPage() {
         throw new Error(body.error || 'Prediction failed');
       }
 
-      setDisplayCurrency(marketCurrency);
+      setDisplayCurrency(body.data.prediction_currency || marketCurrency);
       setPrediction(body.data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unable to predict compensation right now');
@@ -215,7 +227,7 @@ export default function PredictPage() {
                         {formatPredictionCurrency(prediction.predicted_total_comp)}
                       </p>
                       <p className="mt-2 text-xs font-semibold text-text-muted">
-                        {displayCurrency} per annum · {marketLabel}
+                        {displayCurrency} per annum · {prediction.market || marketLabel}
                       </p>
                     </div>
                     <div className="flex flex-wrap gap-2">
