@@ -44,6 +44,7 @@ export default function Navbar() {
     { href: '/salaries', label: 'Salaries' },
     { href: '/companies', label: 'Companies' },
     { href: '/compare', label: 'Compare' },
+    { href: '/predict', label: 'Predict' },
     { href: '/levels', label: 'Levels' },
   ]
 
