@@ -1,9 +1,8 @@
-const FASTAPI_URL = process.env.FASTAPI_URL || 'http://localhost:8000'
-
 export async function POST(request: Request) {
   try {
     const payload = await request.json()
-    const response = await fetch(`${FASTAPI_URL}/predict`, {
+    const origin = new URL(request.url).origin
+    const response = await fetch(`${origin}/api/ml_predict/predict`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
