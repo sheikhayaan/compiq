@@ -62,6 +62,7 @@ ARTIFACT = load_artifact()
 
 
 @app.get("/health")
+@app.get("/api/ml_predict/health")
 def health() -> dict[str, Any]:
     return {
         "status": "ok",
@@ -72,6 +73,8 @@ def health() -> dict[str, Any]:
 
 
 @app.post("/predict", response_model=PredictionOutput)
+@app.post("/api/ml_predict", response_model=PredictionOutput)
+@app.post("/api/ml_predict/predict", response_model=PredictionOutput)
 def predict(payload: PredictionInput) -> PredictionOutput:
     try:
         model = ARTIFACT["model"]
