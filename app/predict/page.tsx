@@ -1,6 +1,7 @@
 "use client";
 
 import React, { FormEvent, useMemo, useState } from 'react';
+import { convertCurrency, formatAnnualCurrency, type DisplayCurrency } from '@/lib/currency';
 
 type Prediction = {
   predicted_base: number;
@@ -14,12 +15,8 @@ type Prediction = {
 const roles = ['Software Engineer', 'Senior SWE', 'Staff SWE', 'Data Scientist', 'PM', 'DevOps', 'Product Manager'];
 const levels = ['Junior', 'Mid', 'Senior', 'Staff', 'Principal'];
 const companies = ['Google', 'Amazon', 'Meta', 'Microsoft', 'Apple', 'Stripe', 'Netflix', 'Uber', 'Infosys', 'TCS', 'Wipro'];
-
-const currency = new Intl.NumberFormat('en-US', {
-  style: 'currency',
-  currency: 'USD',
-  maximumFractionDigits: 0,
-});
+const indianCompanies = ['Infosys', 'TCS', 'Wipro'];
+const indianLocationTerms = ['india', 'bangalore', 'bengaluru', 'delhi', 'mumbai', 'pune', 'hyderabad', 'chennai', 'gurgaon', 'noida'];
 
 export default function PredictPage() {
   const [role, setRole] = useState('Software Engineer');
@@ -28,8 +25,20 @@ export default function PredictPage() {
   const [location, setLocation] = useState('San Francisco');
   const [yearsOfExperience, setYearsOfExperience] = useState(6);
   const [prediction, setPrediction] = useState<Prediction | null>(null);
+  const [displayCurrency, setDisplayCurrency] = useState<DisplayCurrency>('USD');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  const isIndianMarket = useMemo(() => {
+    const normalizedLocation = location.trim().toLowerCase();
+    return indianCompanies.includes(company) || indianLocationTerms.some((term) => normalizedLocation.includes(term));
+  }, [company, location]);
+
+  const marketCurrency: DisplayCurrency = isIndianMarket ? 'INR' : 'USD';
+  const marketLabel = isIndianMarket ? 'India local market' : 'Global / overseas market';
+  const formatPredictionCurrency = (amount: number) => {
+    return formatAnnualCurrency(convertCurrency(amount, 'USD', displayCurrency), displayCurrency);
+  };
 
   const chartData = useMemo(() => {
     if (!prediction) return [];
@@ -68,6 +77,7 @@ export default function PredictPage() {
         throw new Error(body.error || 'Prediction failed');
       }
 
+      setDisplayCurrency(marketCurrency);
       setPrediction(body.data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unable to predict compensation right now');
@@ -89,7 +99,7 @@ export default function PredictPage() {
             Forecast your next offer
           </h1>
           <p className="mt-3 max-w-2xl text-sm text-text-muted">
-            Estimate base, bonus, equity, and total compensation from company, role, level, location, and experience signals.
+            Estimate base, bonus, equity, and total compensation per annum from company, role, level, location, and experience signals.
           </p>
         </div>
 
@@ -131,7 +141,33 @@ export default function PredictPage() {
                     className={fieldClass}
                     placeholder="San Francisco"
                   />
+                  <span className="mt-1.5 block text-[10px] font-semibold text-text-muted">
+                    {marketLabel}. Indian locations default to INR per annum.
+                  </span>
                 </label>
+
+                <div className="rounded-xl border border-white/10 bg-[#0a0a0f]/50 p-3">
+                  <div className="mb-2 flex items-center justify-between gap-3">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-text-muted">Display Currency</span>
+                    <span className="text-[10px] font-semibold text-text-muted">{marketLabel}</span>
+                  </div>
+                  <div className="flex items-center gap-2 rounded-xl border border-border-dark bg-[#0e0e15]/70 p-1">
+                    {(['USD', 'INR'] as const).map((currency) => (
+                      <button
+                        key={currency}
+                        type="button"
+                        onClick={() => setDisplayCurrency(currency)}
+                        className={`flex-1 rounded-lg px-3 py-2 text-xs font-bold transition-all ${
+                          displayCurrency === currency
+                            ? 'bg-[#7c3aed] text-white'
+                            : 'text-text-muted hover:text-text-primary'
+                        }`}
+                      >
+                        {currency}
+                      </button>
+                    ))}
+                  </div>
+                </div>
 
                 <label className="block">
                   <div className="mb-2 flex items-center justify-between">
@@ -176,7 +212,10 @@ export default function PredictPage() {
                     <div>
                       <p className="text-xs font-bold uppercase tracking-wider text-text-muted">Predicted Total Comp</p>
                       <p className="mt-2 text-4xl font-black tracking-tight text-success md:text-6xl">
-                        {currency.format(prediction.predicted_total_comp)}
+                        {formatPredictionCurrency(prediction.predicted_total_comp)}
+                      </p>
+                      <p className="mt-2 text-xs font-semibold text-text-muted">
+                        {displayCurrency} per annum · {marketLabel}
                       </p>
                     </div>
                     <div className="flex flex-wrap gap-2">
@@ -197,7 +236,8 @@ export default function PredictPage() {
                     ].map(([label, value]) => (
                       <div key={label} className="rounded-xl border border-white/10 bg-white/5 p-4">
                         <p className="text-[10px] font-bold uppercase tracking-wider text-text-muted">{label}</p>
-                        <p className="mt-2 text-2xl font-black text-text-primary">{currency.format(Number(value))}</p>
+                        <p className="mt-2 text-2xl font-black text-text-primary">{formatPredictionCurrency(Number(value))}</p>
+                        <p className="mt-1 text-[10px] font-semibold text-text-muted">per annum</p>
                       </div>
                     ))}
                   </div>
@@ -212,7 +252,7 @@ export default function PredictPage() {
                         <div key={item.label}>
                           <div className="mb-1.5 flex items-center justify-between text-xs">
                             <span className="font-semibold text-text-primary">{item.label}</span>
-                            <span className="font-mono text-text-muted">{currency.format(item.value)}</span>
+                            <span className="font-mono text-text-muted">{formatPredictionCurrency(item.value)} pa</span>
                           </div>
                           <div className="h-3 overflow-hidden rounded-full bg-white/5">
                             <div
