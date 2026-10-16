@@ -4,3 +4,15 @@ node_modules
 
 __pycache__/
 *.pyc
+
+# Logs
+*.log
+.next-dev*
+
+# Env
+.env
+.env*.local
+
+# OS
+.DS_Store
+Thumbs.db
