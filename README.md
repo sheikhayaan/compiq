@@ -1,119 +1,124 @@
-# CompIQ — Compensation Intelligence Platform
+# CompIQ
 
-> Real compensation data across levels, roles, and companies.
-> Know your worth, down to the level.
+**Compare offers by level, not by job title — because "L5" and "E5" are the same job and "Senior" is not.**
 
-🔗 Live Demo: https://compiq-three.vercel.app
+CompIQ normalises each company's internal level onto one ordered scale, stores the
+normalised level and its rank on every salary row, and reports distributions as
+median and percentile rather than mean.
 
-## What is CompIQ?
+`Next.js 15` `TypeScript` `Prisma` `PostgreSQL` `NextAuth` `Tailwind` · `FastAPI` (predictor)
 
-CompIQ is a compensation intelligence platform built as an
-alternative to levels.fyi for the global market. Unlike generic
-salary websites that compare by job title, CompIQ compares by
-**level** — because a Google L5 and Amazon L6 are the same
-seniority, but most platforms don't show that.
+**[Live demo →](https://compiq-three.vercel.app)**
 
-## Core Features
+---
 
-- 🔍 **Salary Intelligence** — Browse 300+ verified salary entries
-  filtered by company, role, level, location, experience
-- 🏢 **Company Profiles** — Deep dive into compensation at any company
-  with level progression ladders and comp breakdowns
-- ⚖️ **Side-by-side Comparison** — Compare Google L5 vs Meta E5 vs
-  Amazon L6 with median TC, base, bonus, equity breakdown
-- 📊 **Level Taxonomy** — See how levels map across companies
-  (Google L5 = Meta E5 = Amazon L6 = Microsoft 63)
-- ✉️ **Salary Submission** — Submit your own salary anonymously
-  with duplicate detection and validation
-- 🔐 **Google Authentication** — Secure login with NextAuth
+## Why this exists
 
-## Tech Stack
+Salary sites compare by title, and titles do not translate across companies. Two
+people at identical seniority read as different jobs, and an "average compensation"
+hides the shape of the distribution that actually matters when you negotiate. The
+unit of comparison should be *level and total comp*, with the mapping between levels
+visible enough to argue with.
 
-| Layer | Technology |
-|---|---|
-| Frontend | Next.js 16, React, TypeScript, TailwindCSS |
-| Backend | Next.js API Routes, TypeScript |
-| Database | PostgreSQL (Neon) + Prisma ORM 7 |
-| Auth | NextAuth.js + Google OAuth |
-| Deployment | Vercel |
+## Architecture
 
-## Architecture Decisions
-
-### Why level-based comparison?
-Most platforms compare by title ("Senior Engineer") but titles
-vary wildly across companies. Levels are standardized within
-companies and map to real seniority. CompIQ normalizes all levels
-to Junior/Mid/Senior/Staff/Principal for cross-company comparison.
-
-### Why Prisma + Neon?
-Neon provides serverless PostgreSQL that scales to zero — perfect
-for a demo platform. Prisma gives type-safe DB access and easy
-migrations.
-
-### Company Normalization
-"google inc", "Google LLC", "alphabet" all resolve to "Google"
-via an aliases system. This prevents duplicate company entries
-from user submissions.
-
-### Total Compensation Calculation
-TC = Base Salary + Annual Bonus + Annual Equity (RSU vesting)
-Missing bonus/equity defaults to 0, never null.
-
-## API Routes
-
-| Method | Route | Description |
-|---|---|---|
-| GET | /api/salaries | Filter/search salaries |
-| POST | /api/salaries | Submit new salary (auth required) |
-| GET | /api/companies | List all companies with stats |
-| GET | /api/companies/[slug] | Company detail + level breakdown |
-| GET | /api/compare | Side-by-side comparison data |
-| GET | /api/levels | Level taxonomy |
-| GET | /api/stats | Platform statistics |
-
-## Database Schema
-
-Key models:
-- **Company** — name, slug, aliases[], industry
-- **Salary** — companyId, role, level, normalizedLevel,
-  levelOrder, baseSalary, bonus, equity, totalComp,
-  location, country, currency, yearsExp
-- **LevelMap** — company, rawLevel, normalizedLevel, levelOrder
-- **User** — NextAuth user with Google OAuth
-
-## Local Development
-
-```bash
-git clone https://github.com/sheikhayaan/compiq
-cd compiq
-npm install
-cp .env.example .env.local
-# Add your DATABASE_URL, NEXTAUTH_SECRET, GOOGLE credentials
-npx prisma db push
-npx prisma db seed
-npm run dev
+```mermaid
+flowchart LR
+    U[browser] --> NX[Next.js App Router]
+    NX -->|server components| RQ["route handlers /api/*"]
+    RQ --> PR[Prisma]
+    PR --> PG[(PostgreSQL)]
+    NX -->|NextAuth| OA[Google OAuth]
+    RQ -->|/api/predict| ML[FastAPI<br/>salary_predictor]
+    ML --> PKL[model.pkl<br/>trained offline]
 ```
 
-## Edge Cases Handled
+| Route | Purpose |
+| :-- | :-- |
+| `GET /api/salaries` | filter by company, level, role, country |
+| `POST /api/salaries` | submit (auth required; validated; 30-day duplicate guard) |
+| `GET /api/companies`, `/api/companies/[slug]` | list with stats, detail with level breakdown |
+| `GET /api/compare` | side-by-side comparison payload |
+| `GET /api/levels` | level taxonomy and equivalences |
+| `GET /api/stats` | platform aggregates |
+| `POST /api/predict` | total-comp prediction (proxies the FastAPI service) |
 
-- Negative salary values → rejected with 400
-- Duplicate submission within 30 days → 409 Conflict
-- Unknown company names → normalized via aliases
-- Missing bonus/equity → defaults to 0
-- Invalid level for company → mapped to closest normalized level
-- Unauthenticated submission → 401 Unauthorized
+**Data model.** `Company` (name, slug, aliases, industry) → `Salary`
+(role, raw `level`, `normalizedLevel`, `levelOrder`, base / bonus / equity,
+`totalComp`, location, country, currency, `yearsExp`, `verified`, `flagged`) →
+`LevelMap` (company, raw → normalised level and order). Indices on
+`companyId`, `level`, `role`, `country` cover the filter surface that the UI exercises.
 
-## Research
+## Design decisions
 
-| Feature | Levels.fyi | 6figr | AmbitionBox | Glassdoor | CompIQ |
-|---|---|---|---|---|---|
-| Level-based comp | ✅ | ❌ | ❌ | ❌ | ✅ |
-| Total comp breakdown | ✅ | ⚠️ | ❌ | ⚠️ | ✅ |
-| Company normalization | ✅ | ❌ | ❌ | ⚠️ | ✅ |
-| Level equivalency map | ✅ | ❌ | ❌ | ❌ | ✅ |
-| India market data | ⚠️ | ✅ | ✅ | ✅ | ✅ |
-| Multi-country support | ⚠️ | ❌ | ❌ | ✅ | ✅ |
-| Anonymous submission | ✅ | ✅ | ❌ | ✅ | ✅ |
-| Google OAuth | ❌ | ❌ | ❌ | ❌ | ✅ |
+1. **Levels are data, not branches.** `normalizeLevel()` is a pure function over one
+   explicit map, and the result is *written onto the row* (`normalizedLevel`,
+   `levelOrder`). Reads never re-derive equivalence, sorting by seniority is an integer
+   sort, and correcting a mapping is a migration over stored rows instead of a change
+   to every query.
+2. **Median and percentile, never mean.** Compensation is right-skewed — a single
+   principal-level outlier can move a mean by more than a level's worth of difference.
+   `lib/stats.ts` exposes median and percentile only, so it is impossible to
+   accidentally ship an average.
+3. **Total comp is computed once, on write.** `calculateTotalComp(base, bonus, equity)`
+   runs in the submission path and the result is stored, so a later change to the
+   formula is a versioned decision rather than a silent retro-edit of history.
+4. **Validation at the boundary.** The submission route parses with a schema before
+   touching Prisma: negative values are a `400`, unauthenticated writes a `401`, and a
+   repeat submission from the same user for the same company/level/role inside 30 days
+   is a `409` — duplicate rows would double-count a level without failing anything.
+5. **Company identity is canonicalised.** `normalizeCompanyName()` maps aliases
+   (`aws`, `alphabet`, `facebook`) onto one canonical name and the slug is derived from
+   it, so "AWS" and "Amazon" cannot become two companies with two incomparable medians.
+6. **The predictor is a separate service.** Scikit-learn lives behind FastAPI with a
+   typed request (`years_of_experience: 0…50`), so a slow or broken model cannot take
+   the site down, and CORS is pinned to the app origin plus `*.vercel.app` previews.
 
-Built for the CompIQ internship assignment — Full Stack Engineer, Track C.
+## Quick start
+
+```bash
+git clone https://github.com/sheikhayaan/compiq && cd compiq
+npm install
+# create .env.local with:
+#   DATABASE_URL=postgresql://…      NEXTAUTH_SECRET=…
+#   NEXTAUTH_URL=http://localhost:3000
+#   GOOGLE_CLIENT_ID=…               GOOGLE_CLIENT_SECRET=…
+npx prisma db push
+npx prisma db seed             # 15 companies → 360 salary rows, deterministic
+npm run dev                    # http://localhost:3000
+```
+
+Predictor (optional):
+
+```bash
+cd salary_predictor
+pip install -r requirements.txt
+uvicorn main:app --port 8000    # loads model.pkl
+```
+
+## Tests and checks
+
+```bash
+npm run lint
+npx tsc --noEmit
+npx prisma validate
+```
+
+There is no automated test suite yet — the checks above are type, lint and schema
+validation, and the submission edge cases (401 / 400 / 409) are enforced in
+`app/api/salaries/route.ts` rather than asserted by a test.
+
+## Limits
+
+- **The public deployment reads a checked-in dataset.** `lib/mockData.ts` keeps the
+  demo up without a database; the Prisma routes behind it serve the same shape, so the
+  deployed site demonstrates the product, not live submissions.
+- **Seed data is synthetic** — 360 rows generated by `prisma/seed.ts` from a per-company
+  country distribution, not scraped from anywhere. Numbers are plausible, not real.
+- **The predictor is a small offline model**, trained on that synthetic set. It is a
+  demonstration of the serving path, not a compensation oracle.
+
+## Author
+
+**Mohd Ayaan** — [github.com/sheikhayaan](https://github.com/sheikhayaan) ·
+[LinkedIn](https://linkedin.com/in/mohd-ayaan-7731b4381)
